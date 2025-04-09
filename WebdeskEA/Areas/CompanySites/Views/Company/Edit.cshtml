@@ -1,0 +1,276 @@
+﻿@model CompanyDto
+@{
+    ViewData["Title"] = "Company";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="type" asp-for="Id" hidden />
+                    <input type="hidden" asp-for="TenantId" />
+                    <input type="hidden" asp-for="Logo" />
+
+                    <div class="row">
+
+                        <!-- CompanyCode -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CompanyCode">Company Code</label>
+                                <input type="hidden" asp-for="CompanyCode" />
+                                <input type="text" asp-for="CompanyCode" class="form-control" disabled />
+                                <span asp-validation-for="CompanyCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Name">Company Name</label>
+                                <input type="text" asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Email">Email</label>
+                                <input type="email" asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Phone">Phone</label>
+                                <input type="text" asp-for="Phone" class="form-control" />
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Mobile -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Mobile">Mobile</label>
+                                <input type="text" asp-for="Mobile" class="form-control" />
+                                <span asp-validation-for="Mobile" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Address">Address</label>
+                                <input type="text" asp-for="Address" class="form-control" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Website -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Website">Website</label>
+                                <input type="text" asp-for="Website" class="form-control" />
+                                <span asp-validation-for="Website" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Postal Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="PostalCode">Postal Code</label>
+                                <input type="text" asp-for="PostalCode" class="form-control" />
+                                <span asp-validation-for="PostalCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Country, State, City -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CountryId">Country</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CountryId" asp-items="@(new SelectList(Model.CountryDtoList, "Id", "CountryName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CountryId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="StateId">State</label>
+                                <select class="js-select form-select" asp-for="StateId" asp-items="@(new SelectList(Model.StateProvinceDtoList, "Id", "StateProvinceName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                    <option value="">--- Select State ---</option>
+                                </select>
+                                <span asp-validation-for="StateId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CityId">City</label>
+                                <select class="js-select form-select" asp-for="CityId" asp-items="@(new SelectList(Model.CityDtoList, "Id", "CityName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                    <option value="">--- Select City ---</option>
+                                </select>
+                                <span asp-validation-for="CityId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Logo -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Logo">Logo</label>
+                                <input type="file" asp-for="Logo" class="form-control" />
+                                <span asp-validation-for="Logo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Description">Description</label>
+                                <textarea asp-for="Description" class="form-control"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- TRN -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Trn">TRN</label>
+                                <input type="text" asp-for="Trn" class="form-control" />
+                                <span asp-validation-for="Trn" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Active -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Active">Active</label>
+                                <input type="checkbox" asp-for="Active" class="form-check-input" />
+                                <span asp-validation-for="Active" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit and Cancel Buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+    <script type="module">
+        import { LocationDropdownManager } from '/Frontentjs/Dropdowns/locationdropdownmanager.js';
+        const locationDropdownManager = new LocationDropdownManager(
+            '/Common/DropDown',
+            'CountryId',
+            'StateId',
+            'CityId'
+        );
+
+        // Wait for initialization to complete before setting selected values
+        (async function () {
+            await locationDropdownManager.initializeDropdowns();
+            locationDropdownManager.setSelectedValues({ countryId: @Model.CountryId, stateId: @Model.StateId, cityId: @Model.CityId });
+        })();
+    </script>
+}

@@ -1,0 +1,118 @@
+﻿@model CompanyDto
+@{
+    ViewData["Title"] = "Users";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+<div class="page-header">
+    <div class="page-title">
+        <h4>User</h4>
+        <h6>Delete User</h6>
+    </div>
+</div>
+
+<div class="card">
+
+    @*____ Hidden Properties ___*@
+    <input type="hidden" asp-for="Id"/>
+
+    <div class="card-body">
+        <div class="row">
+            <form method="post">
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" asp-for="Name">
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label asp-for="Email">Company Email</label>
+                        <input type="text" asp-for="Email" disabled>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label asp-for="Phone">Company Phone</label>
+                        <input type="text" asp-for="Phone" disabled>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label asp-for="Address">Address</label>
+                        <input type="text" asp-for="Address" disabled>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label asp-for="Description">Description</label>
+                        <input type="text" asp-for="Description" disabled>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-primary me-2">Submit</button>
+                    <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+    }

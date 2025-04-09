@@ -1,0 +1,44 @@
+﻿<link href="~/lib/notyf/notyf.min.css" rel="stylesheet" />
+<script src="~/lib/notyf/notyf.min.js"></script>
+<script src="~/lib/notyf/customnotyf.js"></script>
+
+@{
+    string successMessage = TempData["Success"] as string;
+    string errorMessage = TempData["Error"] as string;
+    string warningMessage = TempData["Warning"] as string;
+    string infoMessage = TempData["Info"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <script>
+        notyf.success("@successMessage");
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <script>
+        notyf.error("@errorMessage");
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(warningMessage))
+{
+    <script>
+        notyf.open({
+            type: 'warning',
+            message: '@warningMessage'
+        });
+    </script>
+}
+
+@if (!string.IsNullOrEmpty(infoMessage))
+{
+    <script>
+        notyf.open({
+            type: 'info',
+            message: '@infoMessage'
+        });
+    </script>
+}

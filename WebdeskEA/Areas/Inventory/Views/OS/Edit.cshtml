@@ -1,0 +1,372 @@
+﻿@model OSDto
+@{
+    ViewData["Title"] = "Opening Stock";
+}
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    //Create
+    var productOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+      Model.ProductDtos.Select(x => new { value = x.Id, text = x.ProductName, unitPrice = x.ProductPrice, stock = x.Stock })
+    );
+
+    //Edit  --> then we have to loop through the COADtlDto
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.OSDtlDtos);
+
+}
+
+
+
+
+<!--====================== -->
+<!-- The Bootstrap modal -->
+<!--====================== -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createProductModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Update @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="row">
+                        <!-- Product Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="OSCode" />
+                                    <input type="text" class="form-control" asp-for="OSCode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SO Date -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="OSDate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="OSDate"
+                                            class="form-control"
+                                            required
+                                            data-msg="Please select a valid date.">
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Summary -->
+                        @{
+                            #region OK
+                        }
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Product / Service</h5>
+                                        <button type="button" class="btn btn-soft-primary" data-bs-toggle="modal" data-bs-target="#createProductModal">
+                                            <i class="bi-plus"></i> New Product
+                                        </button>
+                                    </div>
+                                    <div class="card-body" id="osCreateContainer">
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle table-nowrap" id="osProductTable">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th width="40%">Product</th>
+                                                        <th width="40%">Quantity</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="osProductTableBody">
+                                                    <!-- Dynamic rows will be inserted here -->
+                                                </tbody>
+                                                <tfoot style="text-align:center">
+                                                    <tr>
+                                                        <td colspan="6" style="text-align: center;">
+                                                            <button id="addRowBtn" class="btn btn-soft-primary">
+                                                                <i class="bi-plus"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            #endregion
+                        }
+                    </div>
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Fix for dropdown overflow in the table */
+    .tom-select-dropdown {
+        z-index: 1050 !important; /* Ensure dropdown appears above other elements */
+    }
+
+    .table-responsive {
+        overflow: visible !important; /* Allow the dropdown to display properly */
+    }
+
+</style>
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+    <script type="module">
+
+        //=======================================================================
+        //============================ Table Component =======================
+        //=======================================================================
+        import { OSDynamicTable } from '/Frontentjs/dynamicComponents/OSDynamicTable.js';
+
+        let productsData = @Html.Raw(@productOptions);
+        const prefilledRows = @Html.Raw(@prefilledVoucher);
+
+        const poNameAttributes = {
+            base: "@nameof(@Model.OSDtlDtos)",
+            productId: "@nameof(OSDtlDto.ProductId)",
+            quantity: "@nameof(OSDtlDto.OSDtlQty)",
+        };
+
+        // For OS Module
+        new OSDynamicTable(
+            "osProductTableBody",
+            "addRowBtn",
+            {
+                productsData: productsData, // Your products data array
+                prefilledRows: prefilledRows, // Your prefilled rows if any
+                isDiscountAllowed: true,
+                isEditMode: true, //not in used
+                mode: 'edit',
+                editTemplateType: 'Template_1', // Default behavior
+                unitPriceFields: ['unitprice', 'productprice', 'price'],
+                stockFields: ['stock', 'currentstock', 'quantityinstock'],
+                quantityFields: ['podtlqty', 'quantity', 'qty'],
+            },
+            poNameAttributes // Your name attributes object
+        );
+
+
+
+
+
+        //==================================================
+        //================= Product opening ================
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createProductModal').on('show.bs.modal', function (event) {
+                $('#createProductModalBody').empty();
+                let $modalBody = $('#createProductModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Product", new { area = "Inventory", typeOfPartialView = "Sale" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createProductForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateProductForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Product", new { area = "Inventory" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewProductToAllProductSelects(json.newProductId, json.newProductName);
+                            let modal = document.getElementById('createProductModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Product created: ${json.newProductName}`);
+
+                            productsData.push({
+                                value: json.newProductId,
+                                text: json.newProductName,
+                                unitPrice: json.newProductUnitPrice,
+                                stock: 0
+                            });
+                        } else {
+                            notyf.error("Failed to create product (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createProductModalBody').html(html);
+
+                        let $newForm = $('#createProductForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting product form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewProductToAllProductSelects(productId, productName) {
+                let $productSelects = $('.product-select');
+                if ($productSelects.length === 0) return; // No such dropdowns
+
+                $productSelects.each(function () {
+                    let tomSelectInstance = this.tomselect;
+
+                    if (tomSelectInstance) {
+                        // 1. Add the new option to TomSelect
+                        tomSelectInstance.addOption({
+                            value: productId,
+                            text: productName
+                        });
+
+                        // 2. Set the newly added product as the selected value
+                        //tomSelectInstance.setValue(productId);
+                    }
+                });
+            }
+
+        });
+
+    </script>
+}

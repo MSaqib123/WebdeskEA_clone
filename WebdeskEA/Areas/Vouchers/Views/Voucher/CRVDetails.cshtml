@@ -1,0 +1,420 @@
+﻿@model VoucherDto
+@{
+    ViewData["Title"] = "Voucher";
+}
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.VoucherDtlDtos);
+    var CustomerData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.CustomerDtos);
+    var CoaData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.COADtos);
+}
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Cash Receipt</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form id="productForm"
+                      class="js-validate"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    <input type="hidden" asp-for="Id" />
+                    <div class="row">
+
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+                        <!-- Product Code -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="VoucherCode"/>
+                                    <input type="text" class="form-control" asp-for="VoucherCode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- SO Date -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label asp-for="VoucherDate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="VoucherDate"
+                                           class="form-control"
+                                           disabled
+                                           data-msg="Please select a valid date.">
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Narration -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label asp-for="VoucherNarration">Narration</label>
+                                <div class="js-form-message">
+                                    <input type="text" asp-for="VoucherNarration"
+                                           class="form-control" disabled
+                                           data-msg="Please provide a narration.">
+                                    <span class="invalid-feedback">Please provide a valid narration.</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Summary -->
+                        @{
+                            #region Summery
+                        }
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Voucher Detail</h5>
+                                    </div>
+                                    <div class="card-body" id="voucherCreateContainer">
+
+                                        @*
+                                        //========================
+                                        //======== Table =========
+                                        //========================
+                                        *@
+                                        @{
+                                            #region Table
+                                        }
+                                        <div class="card mt-5">
+                                            <div class="table-responsive datatable-custom">
+                                                <table id="voucherTable" class="table table-lg table-borderless table-thead-bordered table-nowrap table-align-middle card-table" data-hs-datatables-options='{
+                                                       "columnDefs": [{
+                                                          "targets": [0],
+                                                          "orderable": false
+                                                        }],
+                                                       "order": [],
+                                                       "info": {
+                                                         "totalQty": "#datatableWithPaginationInfoTotalQty"
+                                                       },
+                                                       "search": "#datatableSearch",
+                                                       "entries": "#datatableEntries",
+                                                       "pageLength": 15,
+                                                       "isResponsive": false,
+                                                       "isShowPaging": false,
+                                                       "pagination": "datatablePagination"
+                                                     }'>
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th width="30%">Chart of Account</th>
+                                                            <th width="20%">Debit Amount</th>
+                                                            <th width="20%">Credit Amount</th>
+                                                            <th width="20%">Remarks</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="voucherTableBody">
+                                                        <!-- Dynamic rows will be inserted here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-4">
+                                            <div class="d-flex justify-content-end">
+                                                <div class="text-end me-4">
+                                                    <span class="badge bg-soft-primary text-primary fs-5">Total Credit:</span>
+                                                    <span id="totalCredit" class="text-dark fs-5 fw-bold">0</span>
+                                                </div>
+                                                <div class="text-end me-5">
+                                                    <span class="badge bg-soft-primary text-primary fs-5">Total Debit:</span>
+                                                    <span id="totalDebit" class="text-dark fs-5 fw-bold">0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @{
+                                            #endregion
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @{
+                            #endregion
+                        }
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <a asp-action="CRVIndex" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        //=================== Voucher Component ====================
+        class VoucherManager {
+            constructor(tableId, options) {
+                this.tableBody = document.querySelector(`#${tableId} tbody`);
+                this.addBtn = document.getElementById("addBtn");
+                this.submitBtn = document.getElementById("submitBtn");
+                this.totalCreditEl = document.getElementById("totalCredit"); // Element for total credit
+                this.totalDebitEl = document.getElementById("totalDebit");
+                this.formFields = options.formFields || {}; // { fieldName: fieldSelector }
+                this.prefilledRows = options.prefilledRows || []; // Prefilled data
+                this.tomSelectInstances = {}; // Store Tom Select instances
+
+                this.initialize();
+            }
+
+            initialize() {
+                // Load prefilled rows using a separate renderer
+                PrefilledRowRenderer.renderRows(this.tableBody, this.prefilledRows, this.formFields, true);
+
+                this.updateTotals(); // Calculate totals initially
+            }
+
+            
+            resetForm() {
+                // Reset form fields (includes Tom Select)
+                Object.keys(this.formFields).forEach((field) => {
+                    const fieldSelector = this.formFields[field];
+                    const fieldElement = document.querySelector(fieldSelector);
+
+                    if (fieldElement.tagName === "SELECT" && this.tomSelectInstances[field]) {
+                        //this.tomSelectInstances[field].clear(); // Clear Tom Select
+                    } else if (fieldElement.tagName === "INPUT") {
+                        fieldElement.value = fieldElement.type === "number" ? 0 : ""; // Clear input fields
+                    }
+                });
+            }
+
+            addRow() {
+                const rowData = {};
+                let allFieldsValid = true;
+
+                // Gather field values
+                Object.keys(this.formFields).forEach((field) => {
+                    const fieldSelector = this.formFields[field];
+                    const fieldElement = document.querySelector(fieldSelector);
+
+                    if (fieldElement.tagName === "SELECT") {
+                        const tomSelectInstance = this.tomSelectInstances[field];
+                        const selectedValue = tomSelectInstance?.getValue();
+                        if (!selectedValue) allFieldsValid = false;
+
+                        rowData[field] = {
+                            id: selectedValue || null,
+                            text: tomSelectInstance?.getItem(selectedValue)?.textContent.trim() || "",
+                        };
+                    } else if (fieldElement.tagName === "INPUT") {
+                        const inputValue = fieldElement.value.trim();
+                        if (!inputValue) allFieldsValid = false;
+
+                        rowData[field] = inputValue;
+                    }
+                });
+
+                if (!allFieldsValid) {
+                    alert("Please fill all the fields.");
+                    return;
+                }
+                // Add new row
+                const newRow = PrefilledRowRenderer.createRow(rowData, this.tableBody.children.length, this.formFields, false);
+                this.tableBody.appendChild(newRow);
+
+                this.resetForm();
+                this.updateTotals(); // Recalculate totals
+            }
+
+            editRow(row) {
+                Object.keys(this.formFields).forEach((field, index) => {
+                    const cell = row.children[index];
+                    const value = cell.querySelector("input")?.value || "";
+
+                    const fieldSelector = this.formFields[field];
+                    const fieldElement = document.querySelector(fieldSelector);
+
+                    if (fieldElement.tagName === "SELECT" && this.tomSelectInstances[field]) {
+                        this.tomSelectInstances[field].setValue(value);
+                    } else if (fieldElement.tagName === "INPUT") {
+                        fieldElement.value = value;
+                    }
+                });
+                row.remove();
+                this.updateTotals(); // Recalculate totals
+            }
+
+            deleteRow(row) {
+                if (confirm("Are you sure you want to delete this row?")) {
+                    row.remove();
+                    this.updateTotals(); // Recalculate totals
+                }
+            }
+
+
+            updateTotals() {
+                let totalDebit = 0;
+                let totalCredit = 0;
+
+                this.tableBody.querySelectorAll("tr").forEach((row) => {
+                    const debitValue = parseFloat(row.querySelector("input[name*='DbAmount']").value) || 0;
+                    const creditValue = parseFloat(row.querySelector("input[name*='CrAmount']").value) || 0;
+
+                    totalDebit += debitValue;
+                    totalCredit += creditValue;
+                });
+
+                // Update UI
+                this.totalDebitEl.textContent = totalDebit.toFixed(2);
+                this.totalCreditEl.textContent = totalCredit.toFixed(2);
+
+                // Validate totals
+                this.validateTotals();
+            }
+
+            validateTotals() {
+                const totalDebit = parseFloat(this.totalDebitEl.textContent);
+                const totalCredit = parseFloat(this.totalCreditEl.textContent);
+
+                if (totalDebit !== totalCredit) {
+                    this.submitBtn.disabled = true; // Disable the submit button
+                    return false;
+                }
+                return true;
+            }
+        }
+        class PrefilledRowRenderer {
+            static renderRows(tableBody, prefilledRows, formFields, isPrefiledData) {
+                prefilledRows.forEach((rowData, index) => {
+                    const newRow = this.createRow(rowData, index, formFields, isPrefiledData);
+                    tableBody.appendChild(newRow);
+                });
+            }
+
+            static createRow(rowData, rowIndex, formFields, isPrefiledData = false) {
+                const row = document.createElement("tr");
+
+                //------ AccountName -----
+                let accountName = isPrefiledData == false ? (rowData.COAId?.text || "0") : (rowData.AccountName || "0")
+                let coaId = isPrefiledData == false ? (rowData.COAId.id || 0) : (rowData.COAId);
+                const Remarks = rowData.Remarks || "-"
+                row.innerHTML = `
+                            <td>
+                                ${accountName}
+                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].COAId" value="${coaId || "0"}">
+                            </td>
+
+                            <td>
+                                ${rowData.DbAmount || "0"}
+                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].DbAmount" value="${rowData.DbAmount || "0"}">
+                            </td>
+                            <td>
+                                ${rowData.CrAmount || "0"}
+                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].CrAmount" value="${rowData.CrAmount || "0"}">
+                            </td>
+                            <td>
+                                ${Remarks}
+                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].Remarks" value="${Remarks}">
+                            </td>
+                        `;
+                return row;
+            }
+        }
+        const prefilledRows = @Html.Raw(@prefilledVoucher);
+        const voucherManager = new VoucherManager("voucherTable", {
+            prefilledRows: prefilledRows,
+            formFields: {},
+        });
+
+    </script>
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+
+}
+
+

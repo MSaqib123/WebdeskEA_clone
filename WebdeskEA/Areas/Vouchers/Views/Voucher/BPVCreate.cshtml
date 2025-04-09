@@ -1,0 +1,1144 @@
+﻿@model VoucherDto
+@{
+    ViewData["Title"] = "Voucher";
+}
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.VoucherDtlDtos);
+    var SupplierData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.SupplierDtos);
+    var CoaData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.COADtos);
+    var prefilledPurchaseInvouce = Newtonsoft.Json.JsonConvert.SerializeObject(Model.PIDtos);
+}
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Bank Payment Voucher</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form id="productForm"
+                      class="js-validate"
+                      asp-action="BPVCreate"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    <input type="hidden" asp-for="Id" />
+                    <div class="row">
+
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+                        <!-- Product Code -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="VoucherCode" />
+                                    <input type="text" class="form-control" asp-for="VoucherCode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- SO Date -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label asp-for="VoucherDate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="VoucherDate"
+                                           class="form-control"
+                                           required
+                                           data-msg="Please select a valid date.">
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Narration -->
+                        <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label asp-for="VoucherNarration">Narration</label>
+                                <div class="js-form-message">
+                                    <input type="text" asp-for="VoucherNarration"
+                                           class="form-control"
+                                           data-msg="Please provide a narration.">
+                                    <span class="invalid-feedback">Please provide a valid narration.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Narration -->
+                        @* <div class="col-sm-3">
+                            <div class="mb-4">
+                                <label asp-for="VoucherInvoiceNo">Voucher Invoice No</label>
+                                <div class="js-form-message">
+                                    <input type="text" asp-for="VoucherInvoiceNo"
+                                           class="form-control"
+                                           data-msg="Please provide a narration.">
+                                    <span class="invalid-feedback">Please provide a valid narration.</span>
+                                </div>
+                            </div>
+                        </div> *@
+
+
+                        <!-- Summary -->
+                        @{
+                            #region Summery
+                        }
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Voucher Detail</h5>
+                                    </div>
+                                    <div class="card-body" id="voucherCreateContainer">
+
+                                        @*
+                                        //========================
+                                        //======= Detail =========
+                                        //========================
+                                        *@
+                                        @{
+                                            #region Details
+                                        }
+                                        <div class="row">
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="" customer">Select Supplier</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="supplierdp" Id="supplierdp"
+                                                                asp-items="@(new SelectList(Model.SupplierDtos, "Id", "Name"))"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">Supplier is Required.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="coatypedp">Account Type</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="coatypedp" Id="coatypedp"
+                                                                asp-items="@(new SelectList(Model.COATypeDtos, "Id", "CoatypeName"))"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">AccountType is Required.</span>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="@nameof(VoucherDtlDto.COAId)">Select Chart of Account</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="@nameof(VoucherDtlDto.COAId)" id="@nameof(VoucherDtlDto.COAId)"
+                                                                asp-items="@(new SelectList(Model.COADtos, "Id", "AccountName"))"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">Chart of Account is Required.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="@nameof(VoucherDtlDto.BankName)">Select Bank</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="@nameof(VoucherDtlDto.BankName)"
+                                                                asp-items="@(new SelectList(Model.BankDtos, "Id", "BankName"))"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">Bank is Required.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="@nameof(VoucherDtlDto.PaidInvoiceId)">Paid Invoice No</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="@nameof(VoucherDtlDto.PaidInvoiceId)" Id="@nameof(VoucherDtlDto.PaidInvoiceId)"
+                                                                asp-items="@(new SelectList(Model.PIDtos, "Id", "PICode"))"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "-- Select --"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">InvouceChart is Required.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="@nameof(VoucherDtlDto.PaymentType)">Payment Type</label>
+                                                    <div class="tom-select-custom">
+                                                        <select class="js-select form-select" name="@nameof(VoucherDtlDto.PaymentType)"
+                                                                asp-items="Model.PaymentTypeList"
+                                                                autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                                            <option value="0">-- Select --</option>
+                                                        </select>
+                                                    </div>
+                                                    <span class="invalid-feedback">Payment is Required.</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label>Debit Amount</label>
+                                                    <div class="js-form-message">
+                                                        <input type="number" class="form-control" name="@nameof(VoucherDtlDto.DbAmount)" data-msg="Code is Required." value="0" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label>Credit Amount</label>
+                                                    <div class="js-form-message">
+                                                        <input type="number" class="form-control" name="@nameof(VoucherDtlDto.CrAmount)" data-msg="Credit is Required." placeholder="Credit is Required" value="0" />
+                                                        <span class="invalid-feedback">Code is Required.</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-3 showHide" id="AccountNoDiv">
+                                                <div class="mb-3">
+                                                    <label>Account No</label>
+                                                    <div class="js-form-message">
+                                                        <input type="text" class="form-control" name="@nameof(VoucherDtlDto.AccountNo)" data-msg="Code is Required." />
+                                                        <span class="invalid-feedback">Code is Required.</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3 showHide" id="CheckNoDiv">
+                                                <div class="mb-3">
+                                                    <label>Checque No</label>
+                                                    <div class="js-form-message">
+                                                        <input type="text" class="form-control" name="@nameof(VoucherDtlDto.ChequeNo)" data-msg="Code is Required." />
+                                                        <span class="invalid-feedback">Code is Required.</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-3">
+                                                <div class="mb-3">
+                                                    <label for="Remarks">Remarks</label>
+                                                    <div class="js-form-message">
+                                                        <input type="text" class="form-control" name="@nameof(VoucherDtlDto.Remarks)" data-msg="Remarks is Required." />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Submit Button -->
+                                        <div class="d-flex justify-content-start gap-2">
+                                            <!-- Existing "Add" button -->
+                                            <button type="button" class="btn btn-secondary" id="addBtn">
+                                                <i class="bi-plus"></i> Add
+                                            </button>
+
+                                            <!-- NEW "Update" button (hidden by default) -->
+                                            <button type="button" class="btn btn-success" id="updateBtn" style="display: none;">
+                                                <i class="bi-check2"></i> Update
+                                            </button>
+
+                                            <!-- NEW "Cancel" button (hidden by default) -->
+                                            <button type="button" class="btn btn-light" id="cancelBtn" style="display: none;">
+                                                Cancel
+                                            </button>
+                                        </div>
+                                        @{
+                                            #endregion
+                                        }
+
+                                        @*
+                                        //========================
+                                        //======== Table =========
+                                        //========================
+                                        *@
+                                        @{
+                                            #region Table
+                                        }
+                                        <div class="card mt-5">
+                                            <div class="table-responsive datatable-custom">
+                                                <table id="voucherTable" class="table table-lg table-borderless table-thead-bordered table-nowrap table-align-middle card-table" data-hs-datatables-options='{
+                                                       "columnDefs": [{
+                                                          "targets": [0],
+                                                          "orderable": false
+                                                        }],
+                                                       "order": [],
+                                                       "info": {
+                                                         "totalQty": "#datatableWithPaginationInfoTotalQty"
+                                                       },
+                                                       "search": "#datatableSearch",
+                                                       "entries": "#datatableEntries",
+                                                       "pageLength": 15,
+                                                       "isResponsive": false,
+                                                       "isShowPaging": false,
+                                                       "pagination": "datatablePagination"
+                                                     }'>
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th width="15%">Chart of Account</th>
+                                                            <th width="15%">Invoice#</th>
+                                                            <th width="15%">Bank</th>
+                                                            <th width="15%">PaymentType</th>
+                                                            <th width="10%">Debit Amount</th>
+                                                            <th width="10%">Credit Amount</th>
+                                                            <th width="5%">Account#</th>
+                                                            <th width="5%">Checque#</th>
+                                                            <th width="5%">Remarks</th>
+                                                            <th width="5%">Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="voucherTableBody">
+                                                        <!-- Dynamic rows will be inserted here -->
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-4">
+                                            <div class="d-flex justify-content-end">
+                                                <div class="text-end me-4">
+                                                    <span class="badge bg-soft-primary text-primary fs-5">Total Credit:</span>
+                                                    <span id="totalCredit" class="text-dark fs-5 fw-bold">0</span>
+                                                </div>
+                                                <div class="text-end me-5">
+                                                    <span class="badge bg-soft-primary text-primary fs-5">Total Debit:</span>
+                                                    <span id="totalDebit" class="text-dark fs-5 fw-bold">0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @{
+                                            #endregion
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @{
+                            #endregion
+                        }
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary me-2" id="submitBtn">Submit</button>
+                        <a asp-action="BPVIndex" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script type="module">
+        import { COAbySupplierSelectManager } from '/Frontentjs/Dropdowns/COAbySupplierSelect.js';
+        const COAbySupplierSelectManagers = new COAbySupplierSelectManager(
+            '/Common/DropDown',
+            'supplierdp',
+            'coatypedp',
+            'COAId'
+        );
+    </script>
+
+    <script>
+
+        // Suppose these come from the server
+        const prefilledRows = @Html.Raw(@prefilledVoucher); // If you have prefilled data
+        const prefilledPurchaseInvouce = @Html.Raw(@prefilledPurchaseInvouce); // If you have optional invoice data
+
+        /*****************************************************************
+         * A) PrefilledRowRenderer
+         *****************************************************************/
+        class PrefilledRowRenderer {
+            static renderRows(tableBody, prefilledRows, formFields, isPrefilledData) {
+                prefilledRows.forEach((rowData, index) => {
+                    const newRow = this.createRow(rowData, index, formFields, isPrefilledData);
+                    tableBody.appendChild(newRow);
+                });
+            }
+
+            static createRow(rowData, rowIndex, formFields, isPrefilledData = false) {
+                const row = document.createElement("tr");
+                // Store the rowIndex so we reuse it in applyDataToRow
+                row.dataset.rowIndex = rowIndex;
+
+                // 1) Chart of Account
+                const accountName = !isPrefilledData
+                    ? (rowData.COAId?.text || "N/A")
+                    : (rowData.AccountName || "N/A");
+                const coaId = !isPrefilledData
+                    ? (rowData.COAId?.id || 0)
+                    : (rowData.COAId);
+
+                // 2) Invoice (optional => if 0 => dash)
+                const invoiceTextRaw = !isPrefilledData
+                    ? (rowData.PaidInvoiceId?.text || "")
+                    : (rowData.PaidInvoiceNo || "");
+                const invoiceId = !isPrefilledData
+                    ? (rowData.PaidInvoiceId?.id || 0)
+                    : (rowData.PaidInvoiceId);
+                const invoiceText = parseInt(invoiceId) === 0 ? "–" : invoiceTextRaw;
+
+                // 3) Bank
+                const bankNameRaw = !isPrefilledData
+                    ? (rowData.BankName?.text || "")
+                    : (rowData.BankName || "");
+                const bankId = !isPrefilledData
+                    ? (rowData.BankName?.id || 0)
+                    : (rowData.BankName);
+
+                // 4) PaymentType
+                const paymentTypeName = !isPrefilledData
+                    ? (rowData.PaymentType?.text || "")
+                    : (rowData.PaymentType || "");
+                const paymentTypeId = !isPrefilledData
+                    ? (rowData.PaymentType?.id || 0)
+                    : (rowData.PaymentType);
+
+                // 5) Debit / Credit
+                const debitAmount = rowData.DbAmount || "0";
+                const creditAmount = rowData.CrAmount || "0";
+
+                // 6) AccountNo / ChequeNo
+                const accountNo = rowData.AccountNo || "";
+                const chequeNo = rowData.ChequeNo || "";
+
+                // 7) Remarks
+                const Remarks = rowData.Remarks || "-"
+
+                // Save "original" data for editing or reset
+                row.dataset.original = JSON.stringify({
+                    COAId: { id: coaId, text: accountName },
+                    PaidInvoiceId: { id: invoiceId, text: invoiceText },
+                    BankName: { id: bankId, text: bankNameRaw },
+                    PaymentType: { id: paymentTypeId, text: paymentTypeName },
+                    DbAmount: debitAmount,
+                    CrAmount: creditAmount,
+                    AccountNo: accountNo,
+                    ChequeNo: chequeNo
+                });
+                // For newly created rows, oldOriginal defaults to the same
+                row.dataset.oldOriginal = row.dataset.original;
+
+                // We have 9 columns:
+                // 0) COA, 1) Invoice, 2) Bank, 3) PaymentType,
+                // 4) Debit, 5) Credit, 6) AccountNo, 7) ChequeNo, 8) Actions
+                row.innerHTML = `
+                                                <td>
+                                                    ${accountName}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].COAId" value="${coaId}">
+                                                </td>
+                                                <td>
+                                                    ${invoiceText}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaidInvoiceId" value="${invoiceId}">
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaidInvoiceNo" value="${invoiceText}">
+                                                </td>
+                                                <td>
+                                                    ${bankNameRaw}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].BankName" value="${bankId}">
+                                                </td>
+                                                <td>
+                                                    ${paymentTypeName}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaymentType" value="${paymentTypeId}">
+                                                </td>
+                                                <td>
+                                                    ${debitAmount}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].DbAmount" value="${debitAmount}">
+                                                </td>
+                                                <td>
+                                                    ${creditAmount}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].CrAmount" value="${creditAmount}">
+                                                </td>
+                                                <td>
+                                                    ${accountNo}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].AccountNo" value="${accountNo}">
+                                                </td>
+                                                <td>
+                                                    ${chequeNo}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].ChequeNo" value="${chequeNo}">
+                                                </td>
+                                                <td>
+                                                    ${Remarks}
+                                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].Remarks" value="${Remarks}">
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a class="btn btn-white btn-sm edit-btn" title="Edit">
+                                                            <i class="bi-pencil-fill me-1"></i> Edit
+                                                        </a>
+                                                        <div class="btn-group">
+                                                            <a class="btn btn-white btn-icon btn-sm dropdown-toggle dropdown-toggle-empty"
+                                                               data-bs-toggle="dropdown" aria-expanded="false"></a>
+                                                            <div class="dropdown-menu dropdown-menu-end mt-1">
+                                                                <!-- Reset link -->
+                                                                <a class="dropdown-item reset-btn" title="Reset">
+                                                                    <i class="bi-arrow-counterclockwise dropdown-item-icon"></i> Reset
+                                                                </a>
+                                                                <!-- Delete link -->
+                                                                <a class="dropdown-item delete-btn" title="Delete">
+                                                                    <i class="bi-trash dropdown-item-icon"></i> Delete
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            `;
+
+                this.toggleResetVisibility(row);
+                return row;
+            }
+
+            static toggleResetVisibility(row) {
+                const resetLink = row.querySelector('.reset-btn');
+                if (!resetLink) return;
+                if (row.dataset.oldOriginal === row.dataset.original) {
+                    resetLink.style.display = "none";
+                } else {
+                    resetLink.style.display = "block";
+                }
+            }
+        }
+
+        /*****************************************************************
+         * B) CLASS: VoucherManager
+         *****************************************************************/
+        class VoucherManager {
+            constructor(tableId, options = {}) {
+                this.tableBody = document.querySelector(`#${tableId} tbody`);
+                this.addBtn = document.getElementById("addBtn");
+                this.updateBtn = document.getElementById("updateBtn");
+                this.cancelBtn = document.getElementById("cancelBtn");
+                this.submitBtn = document.getElementById("submitBtn");
+
+                this.totalDebitEl = document.getElementById("totalDebit");
+                this.totalCreditEl = document.getElementById("totalCredit");
+
+                this.formFields = options.formFields || {};
+                this.prefilledRows = options.prefilledRows || [];
+                this.prefilledPurchaseInvouce = options.prefilledPurchaseInvouce || [];
+
+                // For Payment toggles
+                this.accountNoDiv = document.getElementById("AccountNoDiv");
+                this.checkNoDiv = document.getElementById("CheckNoDiv");
+
+                this.tomSelectInstances = {};
+                this.isEditingRow = false;
+                this.currentEditingRow = null;
+
+                this.initialize();
+            }
+
+            initialize() {
+                // 1) Render prefilled
+                PrefilledRowRenderer.renderRows(
+                    this.tableBody,
+                    this.prefilledRows,
+                    this.formFields,
+                    true
+                );
+
+                // 2) Bind events
+                this.bindEvents();
+
+                // 3) init TomSelect
+                this.initTomSelect();
+
+                // 4) update totals from existing
+                this.updateTotals();
+
+                // 5) real-time check for Db/Cr
+                this.bindRealTimeDebitCreditValidation();
+
+                // 6) set Add mode
+                this.showAddMode();
+
+                // 7) toggle Payment fields initially
+                this.togglePaymentFields();
+            }
+
+            showAddMode() {
+                this.addBtn.style.display = "inline-block";
+                this.updateBtn.style.display = "none";
+                this.cancelBtn.style.display = "none";
+            }
+
+            showEditMode() {
+                this.addBtn.style.display = "none";
+                this.updateBtn.style.display = "inline-block";
+                this.cancelBtn.style.display = "inline-block";
+            }
+
+            bindEvents() {
+                this.addBtn?.addEventListener("click", () => this.addNewRow());
+                this.updateBtn?.addEventListener("click", () => this.updateExistingRow());
+                this.cancelBtn?.addEventListener("click", () => this.cancelCurrentEdit());
+
+                // Row-level actions
+                this.tableBody?.addEventListener("click", (evt) => {
+                    const target = evt.target.closest("button, a");
+                    if (!target) return;
+
+                    const row = target.closest("tr");
+                    if (!row) return;
+
+                    const isEdit = target.classList.contains("edit-btn");
+                    const isDelete = target.classList.contains("delete-btn");
+                    const isReset = target.classList.contains("reset-btn");
+
+                    if (isEdit) {
+                        this.startEditingRow(row);
+                    } else if (isDelete) {
+                        this.deleteRow(row);
+                    } else if (isReset) {
+                        this.resetRowToOldRecord(row);
+                    }
+                });
+
+                // final form submission
+                this.submitBtn?.addEventListener("click", (evt) => {
+                    if (this.tableBody.children.length === 0) {
+                        evt.preventDefault();
+                        notyf.error("Please add at least one row before submitting.");
+                        return;
+                    }
+                    const d = parseFloat(this.totalDebitEl.textContent);
+                    const c = parseFloat(this.totalCreditEl.textContent);
+                    if (d !== c) {
+                        evt.preventDefault();
+                        notyf.error("Debit and Credit must be equal before submitting.");
+                    }
+                });
+            }
+
+            initTomSelect() {
+                Object.keys(this.formFields).forEach((key) => {
+                    const el = document.querySelector(this.formFields[key]);
+                    if (el && el.tagName === "SELECT") {
+                        this.tomSelectInstances[key] = new TomSelect(el, {
+                            persist: false,
+                            create: false,
+                            placeholder: "-- Select --"
+                        });
+
+                        // Payment Type => toggle fields
+                        if (key === "PaymentType") {
+                            this.tomSelectInstances[key].on("change", (val) => {
+                                this.togglePaymentFields(val);
+                            });
+                        }
+                        // Invoice => auto fill CR
+                        if (key === "PaidInvoiceId") {
+                            this.tomSelectInstances[key].on("change", (val) => {
+                                this.handleInvoiceSelection(val);
+                            });
+                        }
+                    }
+                });
+            }
+
+            togglePaymentFields(paymentTypeValue) {
+                if (!paymentTypeValue) {
+                    const ts = this.tomSelectInstances['PaymentType'];
+                    paymentTypeValue = ts?.getValue() ?? "0";
+                }
+                if (paymentTypeValue === "Online") {
+                    this.accountNoDiv.style.display = "block";
+                    this.checkNoDiv.style.display = "none";
+                } else if (paymentTypeValue === "Cheque") {
+                    this.accountNoDiv.style.display = "none";
+                    this.checkNoDiv.style.display = "block";
+                } else {
+                    // e.g. Cash or 0 => hide both
+                    this.accountNoDiv.style.display = "none";
+                    this.checkNoDiv.style.display = "none";
+                }
+            }
+
+            handleInvoiceSelection(value) {
+                const numericId = parseInt(value, 10);
+                const dbInput = document.querySelector(this.formFields.DbAmount);
+                const crInput = document.querySelector(this.formFields.CrAmount);
+                if (!dbInput || !crInput) return;
+
+                if (numericId === 0) {
+                    // reset
+                    dbInput.value = 0;
+                    crInput.value = 0;
+                    return;
+                }
+                // fill from prefilledPurchaseInvouce, e.g. SITotal => CR
+                const foundInv = this.prefilledPurchaseInvouce.find(x => x.Id === numericId);
+                if (foundInv) {
+                    dbInput.value = foundInv.PITotal || 0;
+                }
+            }
+
+            bindRealTimeDebitCreditValidation() {
+                const dbInput = document.querySelector(this.formFields.DbAmount);
+                const crInput = document.querySelector(this.formFields.CrAmount);
+                if (!dbInput || !crInput) return;
+
+                dbInput.addEventListener("input", () => {
+                    const dbVal = parseFloat(dbInput.value) || 0;
+                    const crVal = parseFloat(crInput.value) || 0;
+                    if (dbVal > 0 && crVal > 0) {
+                        dbInput.value = 0;
+                        notyf.error("Cannot fill both Debit and Credit at once!");
+                    }
+                });
+                crInput.addEventListener("input", () => {
+                    const dbVal = parseFloat(dbInput.value) || 0;
+                    const crVal = parseFloat(crInput.value) || 0;
+                    if (dbVal > 0 && crVal > 0) {
+                        crInput.value = 0;
+                        notyf.error("Cannot fill both Debit and Credit at once!");
+                    }
+                });
+            }
+
+            // ADD
+            addNewRow() {
+                const rowData = this.collectFormData();
+                if (!rowData) return;
+
+                const dbVal = parseFloat(rowData.DbAmount) || 0;
+                const crVal = parseFloat(rowData.CrAmount) || 0;
+                // exactly one > 0
+                if ((dbVal <= 0 && crVal <= 0) || (dbVal > 0 && crVal > 0)) {
+                    notyf.error("Please enter exactly one of Debit or Credit.");
+                    return;
+                }
+
+                // If invoice=0 => dash
+                if (parseInt(rowData.PaidInvoiceId.id) === 0) {
+                    rowData.PaidInvoiceId.text = "–";
+                }
+
+                const newIndex = this.tableBody.children.length;
+                const newRow = PrefilledRowRenderer.createRow(rowData, newIndex, this.formFields, false);
+                this.tableBody.appendChild(newRow);
+
+                this.resetForm();
+                this.updateTotals();
+                notyf.success("Voucher detail row added successfully.");
+            }
+
+            // EDIT
+            startEditingRow(row) {
+                if (this.isEditingRow && this.currentEditingRow && this.currentEditingRow !== row) {
+                    this.cancelCurrentEdit();
+                }
+                this.isEditingRow = true;
+                this.currentEditingRow = row;
+                this.showEditMode();
+
+                const origDataStr = row.dataset.original;
+                const origData = JSON.parse(origDataStr);
+                this.loadFormData(origData);
+            }
+
+            // UPDATE
+            updateExistingRow() {
+                if (!this.isEditingRow || !this.currentEditingRow) return;
+
+                const rowData = this.collectFormData();
+                if (!rowData) return;
+
+                const dbVal = parseFloat(rowData.DbAmount) || 0;
+                const crVal = parseFloat(rowData.CrAmount) || 0;
+                if ((dbVal <= 0 && crVal <= 0) || (dbVal > 0 && crVal > 0)) {
+                    notyf.error("Please enter exactly one of Debit or Credit.");
+                    return;
+                }
+
+                // store old => revert if needed
+                const oldData = this.currentEditingRow.dataset.original;
+                this.currentEditingRow.dataset.oldOriginal = oldData;
+
+                if (parseInt(rowData.PaidInvoiceId.id) === 0) {
+                    rowData.PaidInvoiceId.text = "–";
+                }
+
+                this.applyDataToRow(this.currentEditingRow, rowData);
+                this.isEditingRow = false;
+                this.currentEditingRow = null;
+                this.showAddMode();
+                this.resetForm();
+                this.updateTotals();
+
+                notyf.success("Voucher row updated successfully.");
+            }
+
+            // CANCEL
+            cancelCurrentEdit() {
+                this.isEditingRow = false;
+                this.currentEditingRow = null;
+                this.resetForm();
+                this.showAddMode();
+            }
+
+            // RESET ROW
+            resetRowToOldRecord(row) {
+                if (row.dataset.oldOriginal === row.dataset.original) {
+                    notyf.error("No older version is available for this row.");
+                    return;
+                }
+                row.dataset.original = row.dataset.oldOriginal;
+                const oldObj = JSON.parse(row.dataset.oldOriginal);
+                this.applyDataToRow(row, oldObj);
+
+                notyf.success("Row data has been reverted to the old record.");
+            }
+
+            collectFormData() {
+                let allValid = true;
+                const rowData = {};
+
+                Object.keys(this.formFields).forEach((key) => {
+                    const el = document.querySelector(this.formFields[key]);
+                    if (!el) {
+                        allValid = false;
+                        return;
+                    }
+
+                    if (el.tagName === "SELECT") {
+                        // read tomSelect
+                        const ts = this.tomSelectInstances[key];
+                        const value = ts?.getValue();
+                        const text = ts?.getItem(value)?.textContent.trim() || "";
+
+                        // COA => mandatory
+                        if (key === "COAId") {
+                            if (!value || value === "0") {
+                                allValid = false;
+                            }
+                        }
+                        rowData[key] = { id: value, text: text };
+                    } else if (el.tagName === "INPUT") {
+                        rowData[key] = el.value.trim(); // e.g. 'AccountNo', 'ChequeNo', etc.
+                    }
+                });
+
+                if (!allValid) {
+                    notyf.error("Please fill in all required fields (COA, one of Debit/Credit).");
+                    return null;
+                }
+                return rowData;
+            }
+
+            loadFormData(obj) {
+                Object.keys(this.formFields).forEach((key) => {
+                    const el = document.querySelector(this.formFields[key]);
+                    if (!el) return;
+
+                    if (el.tagName === "SELECT") {
+                        const ts = this.tomSelectInstances[key];
+                        if (ts) {
+                            ts.setValue(obj[key].id);
+                        }
+                    } else if (el.tagName === "INPUT") {
+                        el.value = obj[key] || "";
+                    }
+                });
+                // Also re-check PaymentType => show/hide fields
+                this.togglePaymentFields();
+            }
+
+            applyDataToRow(row, rowData) {
+                // Retrieve stable rowIndex from data-row-index
+                const rowIndex = row.dataset.rowIndex;
+
+                const tds = row.querySelectorAll("td");
+                if (tds.length < 9) return; // 9 columns
+
+                // 1) COA
+                const accountName = rowData.COAId?.text || "N/A";
+                const coaId = rowData.COAId?.id || 0;
+
+                // 2) invoice
+                const invText = rowData.PaidInvoiceId?.text || "–";
+                const invId = rowData.PaidInvoiceId?.id || 0;
+
+                // 3) bank
+                const bankText = rowData.BankName?.text || "";
+                const bankId = rowData.BankName?.id || 0;
+
+                // 4) PaymentType
+                const payText = rowData.PaymentType?.text || "";
+                const payId = rowData.PaymentType?.id || 0;
+
+                // 5/6) Debit/Credit
+                const dbVal = rowData.DbAmount || "0";
+                const crVal = rowData.CrAmount || "0";
+
+                // 7) AccountNo
+                const accNo = rowData.AccountNo || "";
+                // 8) ChequeNo
+                const chqNo = rowData.ChequeNo || "";
+
+                const Remarks = rowData.Remarks || "-";
+
+                tds[0].innerHTML = `
+                                                ${accountName}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].COAId" value="${coaId}">
+                                            `;
+                tds[1].innerHTML = `
+                                                ${invText}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaidInvoiceId" value="${invId}">
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaidInvoiceNo" value="${invText}">
+                                            `;
+                tds[2].innerHTML = `
+                                                ${bankText}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].BankName" value="${bankId}">
+                                            `;
+                tds[3].innerHTML = `
+                                                ${payText}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].PaymentType" value="${payId}">
+                                            `;
+                tds[4].innerHTML = `
+                                                ${dbVal}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].DbAmount" value="${dbVal}">
+                                            `;
+                tds[5].innerHTML = `
+                                                ${crVal}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].CrAmount" value="${crVal}">
+                                            `;
+                tds[6].innerHTML = `
+                                                ${accNo}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].AccountNo" value="${accNo}">
+                                            `;
+                tds[7].innerHTML = `
+                                                ${chqNo}
+                                                <input type="hidden" name="VoucherDtlDtos[${rowIndex}].ChequeNo" value="${chqNo}">
+                                            `;
+                tds[8].innerHTML = `
+                                    ${Remarks}
+                                    <input type="hidden" name="VoucherDtlDtos[${rowIndex}].Remarks" value="${Remarks}">
+                                    `;
+                // Update row.dataset.original to reflect new data
+                row.dataset.original = JSON.stringify({
+                    COAId: { id: coaId, text: accountName },
+                    PaidInvoiceId: { id: invId, text: invText },
+                    BankName: { id: bankId, text: bankText },
+                    PaymentType: { id: payId, text: payText },
+                    DbAmount: dbVal,
+                    CrAmount: crVal,
+                    AccountNo: accNo,
+                    ChequeNo: chqNo,
+                    Remarks: Remarks
+                });
+
+                // Show/hide the Reset link
+                PrefilledRowRenderer.toggleResetVisibility(row);
+            }
+
+            deleteRow(row) {
+                if (!confirm("Are you sure you want to delete this row?")) return;
+                if (this.isEditingRow && this.currentEditingRow === row) {
+                    this.cancelCurrentEdit();
+                }
+                row.remove();
+                this.updateTotals();
+                notyf.success("Row deleted successfully.");
+            }
+
+            updateTotals() {
+                let totalDebit = 0;
+                let totalCredit = 0;
+                this.tableBody.querySelectorAll("tr").forEach((r) => {
+                    const dbHidden = r.querySelector("input[name*='DbAmount']");
+                    const crHidden = r.querySelector("input[name*='CrAmount']");
+                    const dbVal = parseFloat(dbHidden?.value || 0);
+                    const crVal = parseFloat(crHidden?.value || 0);
+                    totalDebit += dbVal;
+                    totalCredit += crVal;
+                });
+                this.totalDebitEl.textContent = totalDebit.toFixed(2);
+                this.totalCreditEl.textContent = totalCredit.toFixed(2);
+                this.validateTotals();
+            }
+
+            validateTotals() {
+                const d = parseFloat(this.totalDebitEl.textContent);
+                const c = parseFloat(this.totalCreditEl.textContent);
+                if (d !== c) {
+                    this.submitBtn.disabled = true;
+                    return false;
+                } else {
+                    this.submitBtn.disabled = false;
+                    return true;
+                }
+            }
+
+            resetForm() {
+                Object.keys(this.formFields).forEach((key) => {
+                    const el = document.querySelector(this.formFields[key]);
+                    if (!el) return;
+
+                    if (el.tagName === "SELECT" && this.tomSelectInstances[key]) {
+                        this.tomSelectInstances[key].clear();
+                    } else if (el.tagName === "INPUT") {
+                        el.value = (el.type === "number") ? 0 : "";
+                    }
+                });
+                // Hide accountNo & chequeNo by default
+                this.accountNoDiv.style.display = "none";
+                this.checkNoDiv.style.display = "none";
+            }
+        }
+
+        // =====================================================
+        // INSTANTIATE
+        // =====================================================
+        const voucherManager = new VoucherManager("voucherTable", {
+            prefilledRows: prefilledRows,
+            prefilledPurchaseInvouce: prefilledPurchaseInvouce,
+            formFields: {
+                COAId: "select[name='COAId']",        // mandatory
+                PaidInvoiceId: "select[name='PaidInvoiceId']", // optional
+                BankName: "select[name='BankName']",  // optional
+                PaymentType: "select[name='PaymentType']", // optional
+                DbAmount: "input[name='DbAmount']",
+                CrAmount: "input[name='CrAmount']",
+                AccountNo: "input[name='AccountNo']",
+                ChequeNo: "input[name='ChequeNo']",
+                Remarks: "input[name='Remarks']"
+            },
+        });
+    </script>
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+    <script>
+        // (function () {
+        //     // INITIALIZATION OF FORM VALIDATION
+        //     // =======================================================
+        //     HSBsValidation.init('.js-validate');
+
+        //     // Additional Validation for Products
+        //     const form = document.getElementById('productForm');
+        //     form.addEventListener('submit', function (event) {
+        //         //event.preventDefault();
+        //         const rows = document.querySelectorAll("#productTableBody tr");
+        //         if (rows.length === 0) {
+        //             event.preventDefault();
+        //             notyf.error({
+        //                 message: "You must add at least one product.",
+        //                 duration: 10000, // 10 seconds
+        //             });
+        //             return;
+        //         }
+
+        //         let isValid = true;
+
+        //         rows.forEach(row => {
+        //             const qty = parseFloat(row.querySelector('.product-qty').value) || 0;
+        //             const total = parseFloat(row.querySelector('.product-total').textContent) || 0;
+
+        //             if (qty <= 0 || total <= 0) {
+        //                 isValid = false;
+        //             }
+        //         });
+
+        //         if (!isValid) {
+        //             event.preventDefault();
+        //             notyf.error({
+        //                 message: "Each product must have a valid quantity and total price.",
+        //                 duration: 10000, // 10 seconds
+        //             });
+        //         }
+        //     });
+        // })();
+    </script>
+
+}
+
+

@@ -1,0 +1,35 @@
+﻿@model IEnumerable<ModuleDto>
+@using System.Linq;
+
+@{
+    string currentUrl = ViewContext.HttpContext.Request.Path;
+}
+
+@foreach (var module in Model)
+{
+    var moduleUrl = module.ModuleUrl.StartsWith("/") ? module.ModuleUrl : "/" + module.ModuleUrl;
+    var childModules = Model.Where(m => m.ParentModuleId == module.Id && m.Active).ToList();
+    var isChildUrlMatch = childModules.Any(x => x.ModuleUrl == currentUrl);
+
+    <div class="nav-item">
+        @if (childModules.Any()) // Has children
+        {
+            <a class="nav-link dropdown-toggle @(isChildUrlMatch ? "active" : "")" href="#menu_@module.Id"
+               role="button" data-bs-toggle="collapse" data-bs-target="#menu_@module.Id"
+               aria-expanded="@(isChildUrlMatch ? "true" : "false")" aria-controls="menu_@module.Id">
+                <i class="@module.ModuleIcon nav-icon"></i>
+                <span class="nav-link-title">@module.ModuleName</span>
+            </a>
+            <div id="menu_@module.Id" class="nav-collapse collapse @(isChildUrlMatch ? "show" : "")" data-bs-parent="#navbarVerticalMenu">
+                @Html.Partial("_RenderModulesPartial", childModules)
+            </div>
+        }
+        else // Leaf node
+        {
+            <a class="nav-link @(currentUrl == moduleUrl ? "active" : "")" href="@moduleUrl">
+                <i class="@module.ModuleIcon nav-icon"></i>
+                <span class="nav-link-title">@module.ModuleName</span>
+            </a>
+        }
+    </div>
+}

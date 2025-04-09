@@ -1,0 +1,278 @@
+﻿@model POSConfigDto
+@{
+    ViewData["Title"] = "POS Configuration";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+
+<div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createCustomerModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Delete" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <input hidden asp-for="Id" />
+                        <!-- Customer -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="DefaultCustomer">Customer</label>
+                                <div class="input-group tom-select-custom js-form-message">
+                                    <select id="CustomerId"
+                                            class="js-select form-select"
+                                            asp-for="DefaultCustomer"
+                                            asp-items="@(new SelectList(Model.CustomerDtos, "Id", "Name"))"
+                                            required
+                                            disabled
+                                            data-msg="Please select a customer."
+                                            data-hs-tom-select-options='{"placeholder": "--- Select Customer ---"}'>
+                                        <option value="">--- Select Customer ---</option>
+                                    </select>
+                                </div>
+                                <span class="invalid-feedback">Please select a valid customer.</span>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="DefaultTax">DefaultTax</label>
+                                <div class="js-form-message">
+                                    <input type="number" asp-for="DefaultTax"
+                                            disabled
+                                           class="form-control"
+                                           data-msg="Please provide a narration.">
+                                    <span class="invalid-feedback">Please provide a valid narration.</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Active Checkbox -->
+                        <div class="col-sm-2">
+                            <div class="mb-4">
+                                <label>Current Active</label><br /><br />
+                                <label class="checkboxs mb-5">
+                                    <input type="checkbox" asp-for="IsCurrentActive" disabled />
+                                    <span class="checkmarks"></span>
+                                </label>
+                                <span asp-validation-for="IsCurrentActive" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- IsCurrentActive Checkbox -->
+                        <div class="col-sm-2">
+                            <div class="mb-4">
+                                <label>Active</label><br /><br />
+                                <label class="checkboxs mb-5">
+                                    <input type="checkbox" asp-for="Active" disabled />
+                                    <span class="checkmarks"></span>
+                                </label>
+                                <span asp-validation-for="Active" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+                // INITIALIZATION OF FORM SEARCH
+                new HSFormSearch('.js-form-search')
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                HSBsDropdown.init()
+
+                // INITIALIZATION OF SELECT
+                HSCore.components.HSTomSelect.init('.js-select')
+
+                // INITIALIZATION OF ADD FIELD
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+                // INITIALIZATION OF INPUT MASK
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // var companyId = '@companyId';
+                // initializeCompanySelect(companyId);
+            }
+        })()
+
+
+
+
+
+        //==================================================
+        //================= Customer opening ===============
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createCustomerModal').on('show.bs.modal', function (event) {
+                $('#createCustomerModalBody').empty();
+                let $modalBody = $('#createCustomerModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Customer", new { area = "Management" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createCustomerForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateCustomerForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Customer", new { area = "Management" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewCustomerToDp(json.newId, json.newName);
+                            let modal = document.getElementById('createCustomerModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Supplier created: ${json.newName}`);
+                        } else {
+                            notyf.error("Failed to create Customer (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createCustomerModalBody').html(html);
+
+                        let $newForm = $('#createCustomerForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting Customer form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewCustomerToDp(Id, Name) {
+                // Get the DOM element from the jQuery object
+                let $select = $('#CustomerId');
+                if ($select.length > 0) {
+                    let selectElem = $select[0];
+                    // Check if TomSelect is initialized on this element
+                    if (selectElem.tomselect) {
+                        // Add the new option
+                        selectElem.tomselect.addOption({
+                            value: Id,
+                            text: Name
+                        });
+                        // Optionally, set it as the selected value:
+                        //selectElem.tomselect.setValue(Id);
+                    } else {
+                        console.log("TomSelect instance not found on #SupplierId.");
+                    }
+                }
+            }
+
+
+        });
+    </script>
+}

@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Update Stored Procedures";
+}
+
+<h2>Update Stored Procedures</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div>@TempData["Message"]</div>
+}
+
+<form method="post" asp-action="UpdateProcedures">
+    <button type="submit">Update Procedures</button>
+</form>

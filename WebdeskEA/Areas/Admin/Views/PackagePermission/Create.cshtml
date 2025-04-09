@@ -1,0 +1,171 @@
+﻿@model PackagePermissionDto
+@{
+    ViewData["Title"] = "PackgePermission";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Create" asp-for method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Package Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="packageDto.PackageName">Package Name</label>
+                                <input type="text" asp-for="packageDto.PackageName" class="form-control" />
+                                <span asp-validation-for="packageDto.PackageName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Package Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="packageDto.TotalCompany">Total Company</label>
+                                <input type="text" asp-for="packageDto.TotalCompany" class="form-control" />
+                                <span asp-validation-for="packageDto.TotalCompany" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Package Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="packageDto.TotalUser">Total User</label>
+                                <input type="text" asp-for="packageDto.TotalUser" class="form-control" />
+                                <span asp-validation-for="packageDto.TotalUser" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Package Type Dropdown -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="packageDto.PackageTypeId">Package Type</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="packageDto.PackageTypeId" asp-items="@(new SelectList(Model.PackageTypeDtoList, "Id", "PackageType"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="packageDto.PackageTypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- Package Type Dropdown -->
+                        <div class="col-lg-12 col-sm-12 col-12">
+                            <div class="mb-4" id="divInvisible" style="opacity:0">
+                                <label asp-for="ModuleIds">Select User</label>
+                                <select class="js-select form-select" autocomplete="off" asp-for="ModuleIds" asp-items="@(new SelectList(Model.ModuleList, "Id", "ModuleName"))" multiple data-hs-tom-select-options='{
+                                  "placeholder": "Select a Module..."
+                                }'>
+                                </select>
+                                <span asp-validation-for="ModuleIds" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+                document.getElementById("divInvisible").style.opacity = "1";
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+}

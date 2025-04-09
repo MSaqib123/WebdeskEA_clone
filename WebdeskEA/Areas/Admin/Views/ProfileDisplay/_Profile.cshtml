@@ -1,0 +1,126 @@
+﻿@model RegistrationViewModel
+@{
+   var isLoggedIn = User.Identity!.IsAuthenticated;
+}
+<div class="col-lg-4">
+    @* <div class="card card-body mb-3 mb-lg-5">
+        <h5>Complete your profile</h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="progress flex-grow-1">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <span class="ms-4">15%</span>
+        </div>
+    </div> *@
+    <div class="card mb-3 mb-lg-5">
+        <div class="card-header card-header-content-between">
+            <h4 class="card-header-title">Profile</h4>
+        </div>
+        <div class="card-body">
+            <ul class="list-unstyled list-py-2 text-dark mb-0">
+                <li class="pb-0"><span class="card-subtitle">About</span></li>
+                <li><i class="bi-person dropdown-item-icon"></i> @Model.ApplicationUserDto.Name</li>
+                <li><i class="bi-briefcase dropdown-item-icon"></i> @Model.ApplicationUserDto.UserName</li>
+                @* <li><i class="bi-briefcase dropdown-item-icon"></i> No department</li>
+                <li><i class="bi-building dropdown-item-icon"></i> Pixeel Ltd.</li> *@
+
+                <li class="pt-4 pb-0"><span class="card-subtitle">Contacts</span></li>
+                <li><i class="bi-at dropdown-item-icon"></i> @Model.ApplicationUserDto.Email</li>
+                <li><i class="bi-phone dropdown-item-icon"></i>@(Model.ApplicationUserDto.PhoneNumber ?? "No Phone") </li>
+                <li><i class="bi-building dropdown-item-icon"></i>@(Model.ApplicationUserDto.StreetAddress ?? "No Addres Found")</li>
+
+                @* <li class="pt-4 pb-0"><span class="card-subtitle">Teams</span></li>
+                <li class="fs-6 text-body"><i class="bi-people dropdown-item-icon"></i> You are not a member of any teams</li>
+                <li class="fs-6 text-body"><i class="bi-stickies dropdown-item-icon"></i> You are not working on any projects</li> *@
+            </ul>
+        </div>
+    </div>
+    <div class="card card-lg mb-3 mb-lg-5">
+        <div class="card-body text-center">
+            <div class="mb-4">
+                <img class="avatar avatar-xl avatar-4x3" src="~/Template/svg/illustrations/oc-unlock.svg" alt="Image Description" data-hs-theme-appearance="default">
+                <img class="avatar avatar-xl avatar-4x3" src="~/Template/svg/illustrations-light/oc-unlock.svg" alt="Image Description" data-hs-theme-appearance="dark">
+            </div>
+            <div class="mb-3">
+                <h3>2-step verification</h3>
+                <p>Protect your account now and enable 2-step verification in the settings.</p>
+            </div>
+            <a class="btn btn-primary" href="account-settings.html#twoStepVerificationSection">Enable now</a>
+        </div>
+    </div>
+</div>
+
+<div class="col-lg-8">
+    <div class="card card-centered mb-3 mb-lg-5">
+        <div class="card-header card-header-content-between">
+            <h4 class="card-header-title">Activity stream</h4>
+
+            <div class="dropdown">
+                <button type="button" class="btn btn-ghost-secondary btn-icon btn-sm rounded-circle" id="contentActivityStreamDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi-three-dots-vertical"></i>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end mt-1" aria-labelledby="contentActivityStreamDropdown">
+                    <span class="dropdown-header">Settings</span>
+
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-share-fill dropdown-item-icon"></i> Share connections
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-info-circle dropdown-item-icon"></i> Suggest edits
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <span class="dropdown-header">Feedback</span>
+
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-chat-left-dots dropdown-item-icon"></i> Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body card-body-height">
+            <img class="avatar avatar-xxl mb-3" src="~/Template/svg/illustrations/oc-error.svg" alt="Image Description" data-hs-theme-appearance="default">
+            <img class="avatar avatar-xxl mb-3" src="~/Template/svg/illustrations-light/oc-error.svg" alt="Image Description" data-hs-theme-appearance="dark">
+            <p class="card-text">No data to show</p>
+            <a class="btn btn-white btn-sm" href="index-2.html#">Start your Activity</a>
+        </div>
+    </div>
+    <div class="card card-centered mb-3 mb-lg-5">
+        <div class="card-header card-header-content-between">
+            <h4 class="card-header-title">Projects</h4>
+
+            <div class="dropdown">
+                <button type="button" class="btn btn-ghost-secondary btn-icon btn-sm rounded-circle" id="projectReportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi-three-dots-vertical"></i>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end mt-1" aria-labelledby="projectReportDropdown">
+                    <span class="dropdown-header">Settings</span>
+
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-share-fill dropdown-item-icon"></i> Share connections
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-info-circle dropdown-item-icon"></i> Suggest edits
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <span class="dropdown-header">Feedback</span>
+
+                    <a class="dropdown-item" href="#">
+                        <i class="bi-chat-left-dots dropdown-item-icon"></i> Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body card-body-height card-body-centered">
+            <img class="avatar avatar-xxl mb-3" src="~/Template/svg/illustrations/oc-error.svg" alt="Image Description" data-hs-theme-appearance="default">
+            <img class="avatar avatar-xxl mb-3" src="~/Template/svg/illustrations-light/oc-error.svg" alt="Image Description" data-hs-theme-appearance="dark">
+            <p class="card-text">No data to show</p>
+            <a class="btn btn-white btn-sm" href="projects.html">Start your Projects</a>
+        </div>
+    </div>
+</div>

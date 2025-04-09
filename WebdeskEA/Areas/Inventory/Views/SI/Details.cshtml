@@ -1,0 +1,564 @@
+﻿@model SIDto
+@{
+    ViewData["Title"] = "Sale Invoice";
+}
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    //Create
+    var productOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+      Model.ProductDtos.Select(x => new { value = x.Id, text = x.ProductName, unitPrice = x.ProductPrice, stock = x.Stock })
+    );
+    var taxMasterJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.TaxMasterDtos);
+
+    //Edit  --> then we have to loop through the COADtlDto
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.SIDtlDtos);
+    var preFilledTaxMaster = Newtonsoft.Json.JsonConvert.SerializeObject(Model.SIDtlTaxDtos);
+
+}
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Details @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Delete" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+
+                        <!-- Product Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="SICode" />
+                                    <input type="text" class="form-control" asp-for="SICode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="SIDate">Date</label>
+                                <input type="text" asp-for="SIDate" class="form-control" disabled />
+                                <span asp-validation-for="SIDate" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- Customer ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CustomerId">Customer</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CustomerId" asp-items="@(new SelectList(Model.CustomerDtos, "Id", "Name"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select Brand ---"}' disabled>
+                                        <option value="0">--- Select Brand ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CustomerId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- SO ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="SOId">Selse Order</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="SOId" asp-items="@(new SelectList(Model.SODtos, "Id", "SOCode"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select SaleOrder ---"}' disabled>
+                                        <option value="0">--- Select SaleOrder ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="SOId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+
+
+
+                        <!-- Summery -->
+                        @{
+                            #region OK
+                        }
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Product / Service</h5>
+                                        @* <button id="addRowBtn" class="btn btn-soft-primary">
+                                        <i class="bi-plus"></i> Add
+                                        </button> *@
+                                    </div>
+                                    <div class="card-body" id="soCreateContainer">
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle table-nowrap" id="productTable">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th width="30%">Product</th>
+                                                        <th>Current Stock</th>
+                                                        <th>Unit Price</th>
+                                                        <th width="10%">Quantity</th>
+                                                        <th>Price</th>
+                                                        <th>Price After VAT</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="productTableBody">
+                                                    <!-- Dynamic rows will be inserted here -->
+                                                </tbody>
+                                                <tfoot style="text-align:center">
+                                                    <tr>
+                                                        <td colspan="6" style="text-align: center;">
+                                                            <button id="addRowBtn" class="btn btn-soft-primary">
+                                                                <i class="bi-plus"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                        <!-- Total Summary -->
+                                        <div class="mt-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-primary text-primary fs-5">Total Quantity:</span>
+                                                            <span id="totalQuantity" class="text-dark fs-5 fw-bold">0</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-info text-info fs-5">Total Per Piece Price:</span>
+                                                            <span id="totalPerPiecePrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-warning text-warning fs-5">Total Unit Price:</span>
+                                                            <span id="totalUnitPrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-success text-success fs-5">Total Price:</span>
+                                                            <span id="grandTotal" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                    </div>
+                                                    <hr />
+                                                    <div class="row mt-3" id="vatBreakdownRow">
+                                                    </div>
+                                                    <!-- Hidden VAT breakdown inputs for model binding -->
+                                                    <div id="vatBreakdownHiddenContainer" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            #endregion
+                        }
+
+                        <!-- Finaliziation -->
+                        <div class="row d-flex justify-content-center">
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SISubTotal">SubTotal</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="SISubTotal" class="form-control subtotal-hidden" />
+                                        <input asp-for="SISubTotal"
+                                               class="form-control subtotal-visible"
+                                               disabled
+                                               data-msg="Subtotal is required.">
+                                        <span class="invalid-feedback">Please provide a valid subtotal.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Discount -->
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SIDiscount">Discount</label>
+                                    <div class="js-form-message">
+                                        <input asp-for="SIDiscount"
+                                               class="form-control discount-input"
+                                               data-msg="Discount cannot exceed subtotal." disabled>
+                                        <span class="invalid-feedback">Please provide a valid discount.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SITotal">Total</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="SITotal" class="form-control total-hidden" />
+                                        <input asp-for="SITotal"
+                                               class="form-control total-visible"
+                                               disabled
+                                               data-msg="Total is required.">
+                                        <span class="invalid-feedback">Please provide a valid total.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label for="SOTotalAfterVAT">Total (After VAT)</label>
+                                    <div class="js-form-message">
+                                        <input type="text" asp-for="SITotalAfterVAT" class="form-control totalVat-Visisble" disabled value="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <a asp-action="Index" class="btn btn-primary" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .tom-select-dropdown {
+        z-index: 1050 !important;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+</style>
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+    <script type="module">
+
+        //=======================================================================
+        //============================ Component version 2 =======================
+        //=======================================================================
+        import { AdvancedDynamicTable } from '/Frontentjs/dynamicComponents/dynamicTable.js';
+
+        // 1) Parse prefilled data from the server
+        let prefilledRows = @Html.Raw(prefilledVoucher);         // Array of SIDtlDtos with real IDs
+        let prefilledTaxMaster = @Html.Raw(preFilledTaxMaster);  // Array of SIDtlTaxDtos with real SIDtlIds
+
+        // 2) On initial page load, assign fake IDs (1,2,3...) to existing lines
+        let fakeIdCounter = 1;
+        const sidtlIdMap = {};
+
+        prefilledRows.forEach(row => {
+            sidtlIdMap[fakeIdCounter] = row.Id;  // store real => fake
+            row.Id = fakeIdCounter;              // replace real with fake
+            fakeIdCounter++;
+        });
+
+        // Also update the tax lines to reference these fake IDs
+        prefilledTaxMaster.forEach(tax => {
+            const fakeId = Object.keys(sidtlIdMap).find(key => sidtlIdMap[key] === tax.SIDtlId);
+            if (fakeId) {
+                tax.SIDtlId = parseInt(fakeId);  // set to the matching fake ID
+            } else {
+                console.warn(`No fakeId found for SIDtlId: ${tax.SIDtlId}. This tax record will be skipped.`);
+            }
+        });
+
+        // 3) Additional data from server
+        const productsData = @Html.Raw(productOptions);  // e.g. [ {value:1, text:"ProdA", unitPrice:100, stock:50}, ... ]
+        const taxMasterData = @Html.Raw(taxMasterJson);  // e.g. [ {id:1, taxName:"CGST", taxValue:9}, ... ]
+
+        // 4) Name attributes for your SIDtlDtos
+        const siNameAttributes = {
+            base: "@nameof(@Model.SIDtlDtos)",
+            productId: "@nameof(SIDtlDto.ProductId)",
+            quantity: "@nameof(SIDtlDto.SIDtlQty)",
+            unitPrice: "@nameof(SIDtlDto.SIDtlPrice)",
+            total: "@nameof(SIDtlDto.SIDtlTotal)"
+        };
+
+        // 5) Instantiate the AdvancedDynamicTable for initial page load
+        let advancedDynamicTableInstance = new AdvancedDynamicTable(
+            "productTableBody",
+            "addRowBtn",
+            {
+                productsData,
+                prefilledRows,
+                taxMasterData,
+                prefilledTaxMaster,
+
+                // The dynamic property names for your doc
+                taxDetailCollectionName: "SIDtlTaxDtos",
+                vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                detailIdFieldName: "SIDtlId",
+                docIdFieldName: "SIId",
+
+                // Field IDs for Subtotal, Total, Discount
+                subtotalId: "SISubTotal",
+                totalId: "SITotal",
+                discountId: "SIDiscount",
+
+                // Other config
+                isDiscountAllowed: true,
+                isEditMode: true,    // not specifically used, but kept for reference
+                mode: 'delete',        // or 'create', 'delete', 'detail'
+                editTemplateType: 'Template_1',
+
+                // Field mapping
+                unitPriceFields: ['unitprice', 'productprice', 'price'],
+                stockFields: ['stock', 'currentstock', 'quantityinstock'],
+                quantityFields: ['podtlqty', 'quantity', 'qty']
+            },
+            siNameAttributes
+        );
+
+
+        //=======================================================================
+        //============================ PO Select ================================
+        //=======================================================================
+        const mappingSoObject = (soDtlDtos, SIId) =>
+            soDtlDtos.map(soDtlDto => ({
+                Id: soDtlDto.id,
+                SIId: SIId,
+                ProductId: soDtlDto.productId,
+                SIDtlQty: soDtlDto.soDtlQty,
+                SIDtlPrice: soDtlDto.soDtlPrice,
+                SIDtlTotal: soDtlDto.soDtlTotal
+            }));
+
+        const mappingTaxObject = (soDtlTaxDtos) =>
+            soDtlTaxDtos.map(soDtlTaxDto => ({
+                AfterTaxAmount: soDtlTaxDto.afterTaxAmount,
+                Id: soDtlTaxDto.id,
+                SIDtlId: soDtlTaxDto.soDtlId,  // we'll override this with a fake ID
+                SIId: soDtlTaxDto.soId,
+                TaxAmount: soDtlTaxDto.taxAmount,
+                TaxId: soDtlTaxDto.taxId
+            }));
+
+        // 6) When user selects an SO from the dropdown
+        const salesOrderDropdown = document.getElementById("SOId");
+        const customerDropdown = document.getElementById("CustomerId");
+
+        // Wait for TomSelect to initialize
+        await new Promise((resolve) => {
+            const observer = new MutationObserver((mutations, obs) => {
+                if (salesOrderDropdown.tomselect) {
+                    obs.disconnect();
+                    resolve();
+                }
+            });
+            observer.observe(salesOrderDropdown, { attributes: true, childList: false, subtree: false });
+        });
+
+        const tomSelectInstance = salesOrderDropdown.tomselect;
+        tomSelectInstance.on("change", async function (selectedValue) {
+            const tomCustomerInstance = customerDropdown.tomselect;
+
+            if (!selectedValue || selectedValue === "0") {
+                console.log("No Sales Order chosen. Resetting table.");
+
+                // Optionally clear customer
+                if (tomCustomerInstance) {
+                    tomCustomerInstance.clear();
+                }
+
+                // Clear the table
+                advancedDynamicTableInstance.updateData({
+                    productsData,
+                    prefilledRows: [],
+                    prefilledTaxMaster: [],
+                    taxMasterData,
+
+                    taxDetailCollectionName: "SIDtlTaxDtos",
+                    vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                    detailIdFieldName: "SIDtlId",
+                    docIdFieldName: "SIId",
+
+                    subtotalId: "SISubTotal",
+                    totalId: "SITotal",
+                    discountId: "SIDiscount",
+                    isDiscountAllowed: true,
+                    isEditMode: false,
+                    mode: 'delete',
+                    editTemplateType: 'Template_1',
+
+                    unitPriceFields: ['productprice', 'unitprice', 'price'],
+                    stockFields: ['currentstock', 'stock', 'quantityinstock'],
+                    quantityFields: ['podtlqty', 'quantity', 'qty']
+                }, siNameAttributes);
+
+                return;
+            }
+
+            // 7) Fetch the SO lines
+            try {
+                const response = await fetch(`/Inventory/SO/GetSOById?id=${selectedValue}`);
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status} - ${response.statusText}`);
+                }
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.error("Failed to load Sales Order data:", result.message);
+                    return;
+                }
+
+                const SOData = result.data; // { soDtlDtos, soDtlTaxDtos, customerId, etc. }
+                console.log("Sales Order Data:", SOData);
+
+                // Fill the customer dropdown
+                const { soDtlDtos, soDtlTaxDtos, customerId } = SOData;
+                tomCustomerInstance.setValue(customerId);
+
+                // Map them from so->si style
+                const prefilledVoucher = mappingSoObject(soDtlDtos, selectedValue);
+                const prefilledTaxMaster = mappingTaxObject(soDtlTaxDtos);
+
+                // 7B) Re-assign new fake IDs for these newly fetched lines
+                let newFakeCounter = 1;
+                const siFakeIdMap = {};
+                prefilledVoucher.forEach(line => {
+                    siFakeIdMap[newFakeCounter] = line.Id; // real => fake
+                    line.Id = newFakeCounter;
+                    newFakeCounter++;
+                });
+
+                // Update the tax lines to match these new fakes
+                prefilledTaxMaster.forEach(taxLine => {
+                    const matchedFakeId = Object.keys(siFakeIdMap).find(k => siFakeIdMap[k] === taxLine.SIDtlId);
+                    if (matchedFakeId) {
+                        taxLine.SIDtlId = parseInt(matchedFakeId, 10);
+                    } else {
+                        console.warn(`No fakeId found for SIDtlId: ${taxLine.SIDtlId}. Skipping tax line.`);
+                    }
+                });
+
+                // 8) Update the table
+                advancedDynamicTableInstance.updateData({
+                    productsData,
+                    prefilledRows: prefilledVoucher,
+                    taxMasterData,
+                    prefilledTaxMaster,
+
+                    subtotalId: "SISubTotal",
+                    totalId: "SITotal",
+                    discountId: "SIDiscount",
+                    isDiscountAllowed: true,
+                    isEditMode: true,
+                    mode: 'delete',
+                    editTemplateType: 'Template_1',
+
+                    // Field mapping
+                    unitPriceFields: ['sidtlprice', 'productprice', 'price'],
+                    stockFields: ['stock', 'currentstock', 'quantityinstock'],
+                    quantityFields: ['sidtlqty', 'quantity', 'qty'],
+
+                    // Tax names
+                    taxDetailCollectionName: "SIDtlTaxDtos",
+                    vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                    detailIdFieldName: "SIDtlId",
+                    docIdFieldName: "SIId"
+                }, siNameAttributes);
+
+            } catch (error) {
+                console.error("Error fetching Sales Order data:", error);
+            }
+        });
+    </script>
+
+}

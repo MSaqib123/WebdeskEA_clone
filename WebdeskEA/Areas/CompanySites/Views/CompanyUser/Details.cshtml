@@ -1,0 +1,58 @@
+﻿@model IEnumerable<CompanyUserDto>
+@{
+    ViewData["Title"] = "CompanyUser";
+}
+<div class="page-header">
+    <div class="page-title">
+        <h4>@(ViewBag.NameOfForm) Details</h4>
+        <h6>Full details of a @(ViewBag.NameOfForm)</h6>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="productdetails">
+                    <ul class="product-bar">
+                        <li>
+                            <h4>CompanyName</h4>
+                            <h6>@ViewBag.CompanyName</h6>
+                        </li>
+                    </ul>
+                </div>
+                <div class="productdetails" style="margin-top:15px">
+                    <div class="table-responsive">
+                        <table class="table  datanew">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                </tr>
+                            </thead>
+                            <tbody class="products">
+                                @if (Model.FirstOrDefault()!.UserId != null)
+                                {
+                                    @foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>@item.UserName</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <a class="btn btn-submit me-2" asp-action="Edit" asp-route-id="@ViewBag.CompanyId">Edit</a>
+            <a asp-action="Index" class="btn btn-cancel" id="bt">Cancel</a>
+        </div>
+    </div>
+</div>
+

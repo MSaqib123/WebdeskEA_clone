@@ -1,0 +1,223 @@
+﻿@model UserRightDto
+@{
+    ViewData["Title"] = "UserRightManager";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm mb-2 mb-sm-0">
+                <h1 class="page-header-title">Assign @ViewBag.NameOfForm</h1>
+            </div>
+            <div class="col-md-auto">
+                <authorize policy="ModuleInsert">
+                    <a class="btn btn-danger" asp-action="Index">Cancle</a>
+                </authorize>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card" style="padding-bottom:20px">
+        <div class="card-body">
+            <div class="row d-flex justify-content-between align-items-center mb-4">
+                <div class="col-auto">
+                    <h3>@Model.UserName</h3>
+                </div>
+                <div class="col-auto">
+                </div>
+                <div class="col-auto d-flex justify-content-between align-items-center">
+                    <div class="form-check form-switch me-3">
+                        <input type="checkbox" class="form-check-input" id="toggleAllRights" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Assign Rights</button>
+                </div>
+            </div>
+
+            <!-- Loop through the module list -->
+            @for (int i = 0; i < Model.UserRigthsList.Count(); i++)
+            {
+                var module = Model.UserRigthsList.ElementAt(i);
+                <input type="hidden" name="UserRigthsList[@i].ModuleId" value="@module.ModuleId" />
+                <input type="hidden" name="UserRigthsList[@i].UserId" value="@module.UserId" />
+                <div class="row module-section" data-module-id="@module.ModuleId">
+                    <div class="table-responsive">
+                        <div class="d-flex mb-3">
+                            <label for="module_@module.ModuleId" style="font-weight:bold;margin-right:15px">@module.ModuleName</label>
+                            <div class="status-toggle d-flex justify-content-between align-items-center">
+                                <input type="checkbox" id="module_@module.ModuleId" name="UserRigthsList[@i].Active" class="check module-toggle" @(module.Active ? "checked" : "") value="true">
+                                <label for="module_@module.ModuleId" class="checktoggle"></label>
+                            </div>
+                        </div>
+
+                        <table class="table mb-3">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="insert_@module.ModuleId" name="UserRigthsList[@i].RightInsert" class="check me-2 child-toggle" @(module.RightInsert ? "checked" : "") value="true">
+                                            <label for="insert_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="insert_@module.ModuleId" class="m-0">Insert</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="update_@module.ModuleId" name="UserRigthsList[@i].RightUpdate" class="check me-2 child-toggle" @(module.RightUpdate ? "checked" : "") value="true">
+                                            <label for="update_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="update_@module.ModuleId" class="m-0">Update</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="delete_@module.ModuleId" name="UserRigthsList[@i].RightDelete" class="check me-2 child-toggle" @(module.RightDelete ? "checked" : "") value="true">
+                                            <label for="delete_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="delete_@module.ModuleId" class="m-0">Delete</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="view_@module.ModuleId" name="UserRigthsList[@i].RightView" class="check me-2 child-toggle" @(module.RightView ? "checked" : "") value="true">
+                                            <label for="view_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="view_@module.ModuleId" class="m-0">View</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="print_@module.ModuleId" name="UserRigthsList[@i].RightPrint" class="check me-2 child-toggle" @(module.RightPrint ? "checked" : "") value="true">
+                                            <label for="print_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="print_@module.ModuleId" class="m-0">Print</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="edit_@module.ModuleId" name="UserRigthsList[@i].RightEdit" class="check me-2 child-toggle" @(module.RightEdit ? "checked" : "") value="true">
+                                            <label for="edit_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="edit_@module.ModuleId" class="m-0">Edit</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="approve_@module.ModuleId" name="UserRigthsList[@i].RightApprove" class="check me-2 child-toggle" @(module.RightApprove ? "checked" : "") value="true">
+                                            <label for="approve_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="approve_@module.ModuleId" class="m-0">Approve</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Function to update the module toggle based on child toggles
+        function updateModuleToggle(moduleId) {
+            // Check if all child toggles in the module are checked
+            var allChecked = Array.from(document.querySelectorAll('.module-section[data-module-id="' + moduleId + '"] .child-toggle')).every(function (ct) {
+                return ct.checked;
+            });
+
+            // Set the module-level toggle based on the state of the child toggles
+            document.querySelector('#module_' + moduleId).checked = allChecked;
+        }
+
+        // Function to update the #toggleAllRights toggle based on module toggles
+        function updateToggleAllRights() {
+            var allChecked = Array.from(document.querySelectorAll('.module-toggle')).every(function (moduleToggle) {
+                return moduleToggle.checked;
+            });
+            document.getElementById('toggleAllRights').checked = allChecked;
+        }
+
+        // Attach change event listener for each module toggle
+        document.querySelectorAll(".module-toggle").forEach(function (moduleToggle) {
+            moduleToggle.addEventListener("change", function () {
+                var moduleId = this.id.split('_')[1]; // Extract the moduleId from the ID
+                var isChecked = this.checked;
+
+                // Toggle all child checkboxes for this module
+                document.querySelectorAll('.module-section[data-module-id="' + moduleId + '"] .child-toggle').forEach(function (childToggle) {
+                    childToggle.checked = isChecked;
+                });
+
+                // Update the toggleAllRights checkbox
+                updateToggleAllRights();
+            });
+        });
+
+        // Toggle all rights on the page
+        document.getElementById("toggleAllRights").addEventListener("change", function () {
+            var isChecked = this.checked;
+
+            // Toggle all module and child checkboxes
+            document.querySelectorAll(".module-toggle, .child-toggle").forEach(function (toggle) {
+                toggle.checked = isChecked;
+            });
+        });
+
+        // Ensure that child toggles control the module-level checkbox as well
+        document.querySelectorAll(".child-toggle").forEach(function (childToggle) {
+            childToggle.addEventListener("change", function () {
+                var moduleId = this.id.split('_')[1]; // Extract the moduleId from the child ID
+
+                // Update the module toggle based on child toggle changes
+                updateModuleToggle(moduleId);
+
+                // Update the toggleAllRights checkbox
+                updateToggleAllRights();
+            });
+        });
+
+        // On page load, check the state of each module toggle and update the toggleAllRights checkbox
+        document.querySelectorAll(".module-section").forEach(function (moduleSection) {
+            var moduleId = moduleSection.getAttribute('data-module-id');
+            updateModuleToggle(moduleId); // Check and update each module toggle
+        });
+
+        // Check and update the toggleAllRights checkbox on page load
+        updateToggleAllRights();
+    });
+
+</script>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('.select').select2();
+        });
+    </script>
+}

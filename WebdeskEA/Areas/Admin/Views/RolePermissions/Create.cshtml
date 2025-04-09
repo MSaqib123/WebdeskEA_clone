@@ -1,0 +1,239 @@
+﻿@model RolePermissionDto
+@{
+    ViewData["Title"] = "RolePermissions";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RoleId" />
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col-sm mb-2 mb-sm-0">
+                <h1 class="page-header-title">@ViewBag.NameOfForm</h1>
+            </div>
+            <div class="col-md-auto">
+                <a class="btn btn-danger" asp-action="Index">Cancel</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="padding-bottom:20px">
+        <div class="card-body">
+            <div class="row d-flex justify-content-between align-items-center mb-4">
+                <div class="col-auto">
+                    <h3>@Model.roleDto.RoleName</h3>
+                </div>
+                <div class="col-auto d-flex justify-content-between align-items-center">
+                    <div class="form-check form-switch me-3">
+                        <input type="checkbox" class="form-check-input" id="toggleAllRights" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">Assign Rights</button>
+                </div>
+            </div>
+
+            <!-- Loop through the module list -->
+            @for (int i = 0; i < Model.rolePermission.Count(); i++)
+            {
+                var module = Model.rolePermission.ElementAt(i);
+                <input type="hidden" name="rolePermission[@i].ModuleId" value="@module.ModuleId" />
+
+                <div class="row module-section" data-module-id="@module.ModuleId">
+                    <div class="table-responsive">
+                        <div class="d-flex mb-3">
+                            <label for="module_@module.ModuleId" style="font-weight:bold;margin-right:15px">@module.ModuleName</label>
+                            <div class="status-toggle d-flex justify-content-between align-items-center">
+                                <input type="checkbox" id="module_@module.ModuleId" name="rolePermission[@i].Active" class="check module-toggle" value="true" />
+                                <label for="module_@module.ModuleId" class="checktoggle"></label>
+                            </div>
+                        </div>
+
+                        <table class="table mb-3">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="insert_@module.ModuleId" name="rolePermission[@i].PermInsert" class="check me-2 child-toggle" value="true" @(module.PermInsert!.Value ? "checked" : "")>
+                                            <label for="insert_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="insert_@module.ModuleId" class="m-0">Insert</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="update_@module.ModuleId" name="rolePermission[@i].PermUpdate" class="check me-2 child-toggle" value="true" @(module.PermUpdate!.Value ? "checked" : "")>
+                                            <label for="update_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="update_@module.ModuleId" class="m-0">Update</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="delete_@module.ModuleId" name="rolePermission[@i].PermDelete" class="check me-2 child-toggle" value="true" @(module.PermDelete!.Value ? "checked" : "")>
+                                            <label for="delete_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="delete_@module.ModuleId" class="m-0">Delete</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="view_@module.ModuleId" name="rolePermission[@i].PermView" class="check me-2 child-toggle" value="true" @(module.PermView!.Value ? "checked" : "")>
+                                            <label for="view_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="view_@module.ModuleId" class="m-0">View</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="print_@module.ModuleId" name="rolePermission[@i].PermPrint" class="check me-2 child-toggle" value="true" @(module.PermPrint!.Value ? "checked" : "")>
+                                            <label for="print_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="print_@module.ModuleId" class="m-0">Print</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="status-toggle d-flex align-items-center">
+                                            <input type="checkbox" id="Notification_@module.ModuleId" name="rolePermission[@i].PermNotification" class="check me-2 child-toggle" value="true" @(module.PermNotification!.Value ? "checked" : "")>
+                                            <label for="Notification_@module.ModuleId" class="checktoggle me-2"></label>
+                                            <label for="Notification_@module.ModuleId" class="m-0">Notification</label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        function updateModuleToggle(moduleId) {
+            var anyChecked = Array.from(document.querySelectorAll('.module-section[data-module-id="' + moduleId + '"] .child-toggle')).some(function (ct) {
+                return ct.checked;
+            });
+
+            document.querySelector('#module_' + moduleId).checked = anyChecked;
+        }
+
+        function updateToggleAllRights() {
+            var allChecked = Array.from(document.querySelectorAll('.module-toggle')).every(function (moduleToggle) {
+                return moduleToggle.checked;
+            });
+            document.getElementById('toggleAllRights').checked = allChecked;
+        }
+
+        document.querySelectorAll(".module-toggle").forEach(function (moduleToggle) {
+            moduleToggle.addEventListener("change", function () {
+                var moduleId = this.id.split('_')[1];
+                var isChecked = this.checked;
+                document.querySelectorAll('.module-section[data-module-id="' + moduleId + '"] .child-toggle').forEach(function (childToggle) {
+                    childToggle.checked = isChecked;
+                });
+
+                updateToggleAllRights();
+            });
+        });
+
+        document.getElementById("toggleAllRights").addEventListener("change", function () {
+            var isChecked = this.checked;
+            document.querySelectorAll(".module-toggle, .child-toggle").forEach(function (toggle) {
+                toggle.checked = isChecked;
+            });
+        });
+
+        document.querySelectorAll(".child-toggle").forEach(function (childToggle) {
+            childToggle.addEventListener("change", function () {
+                var moduleId = this.id.split('_')[1]; 
+                updateModuleToggle(moduleId);
+                updateToggleAllRights();
+            });
+        });
+
+        document.querySelectorAll(".module-section").forEach(function (moduleSection) {
+            var moduleId = moduleSection.getAttribute('data-module-id');
+            updateModuleToggle(moduleId); // Initialize module toggle state
+        });
+
+        updateToggleAllRights();
+    });
+
+</script>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+}

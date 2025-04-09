@@ -1,0 +1,316 @@
+﻿@model List<COADto>
+@{
+    ViewData["Title"] = "Chart of Account";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-md">
+            <div class="d-sm-flex mt-3">
+                <h1 class="page-header-title">
+                    @ViewBag.NameOfForm
+                </h1>
+                <!-- End Dropdown -->
+            </div>
+        </div>
+        <div class="col-md-auto">
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg"></i> Add</a>
+        </div>
+    </div>
+</div>
+<!-- End Page Header -->
+<!-- Card -->
+<div class="card">
+    <!-- Header -->
+    <div class="card-header card-header-content-sm-between">
+        <div class="mb-2 mb-sm-0">
+            <form>
+                <!-- Search -->
+                <div class="input-group input-group-merge input-group-flush">
+                    <div class="input-group-prepend input-group-text">
+                        <i class="bi-search"></i>
+                    </div>
+                    <input id="datatableSearch" type="search" class="form-control" placeholder="Search orders" aria-label="Search orders">
+                </div>
+                <!-- End Search -->
+            </form>
+        </div>
+
+        <div class="d-grid d-sm-flex justify-content-sm-end align-items-sm-center gap-2">
+            <!-- Datatable Info -->
+            <div id="datatableCounterInfo" style="display: none;">
+                <div class="d-flex align-items-center">
+                    <span class="fs-5 me-3">
+                        <span id="datatableCounter">0</span>
+                        Selected
+                    </span>
+                    <a class="btn btn-outline-danger btn-sm" href="javascript:;">
+                        <i class="bi-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+            <!-- End Datatable Info -->
+            <!-- Dropdown -->
+            <div class="dropdown">
+                <button type="button" class="btn btn-white w-100" id="showHideDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                    <i class="bi-table me-1"></i> Columns <span class="badge bg-soft-dark text-dark rounded-circle ms-1">5</span>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end dropdown-card" aria-labelledby="showHideDropdown" style="width: 15rem;">
+                    <div class="card card-sm">
+                        <div class="card-body">
+                            <div class="d-grid gap-3">
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_name">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Name</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_name" checked>
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_email">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">E-mail</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_email" checked>
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_phone">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Phone</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_phone">
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_country">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Country</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_country" checked>
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_account_status">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Account status</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_account_status">
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_orders">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Orders</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_orders" checked>
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_total_spent">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Total spent</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_total_spent" checked>
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                                <!-- Form Switch -->
+                                <label class="row form-check form-switch" for="toggleColumn_last_activity">
+                                    <span class="col-8 col-sm-9 ms-0">
+                                        <span class="me-2">Last activity</span>
+                                    </span>
+                                    <span class="col-4 col-sm-3 text-end">
+                                        <input type="checkbox" class="form-check-input" id="toggleColumn_last_activity">
+                                    </span>
+                                </label>
+                                <!-- End Form Switch -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Dropdown -->
+        </div>
+    </div>
+    <!-- End Header -->
+    <!-- Table -->
+    <div class="table-responsive datatable-custom">
+        <table id="datatable" class="table table-lg table-borderless table-thead-bordered table-nowrap table-align-middle card-table" data-hs-datatables-options='{
+                   "columnDefs": [{
+                      "targets": [0],
+                      "orderable": false
+                    }],
+                   "order": [],
+                   "info": {
+                     "totalQty": "#datatableWithPaginationInfoTotalQty"
+                   },
+                   "search": "#datatableSearch",
+                   "entries": "#datatableEntries",
+                   "pageLength": 15,
+                   "isResponsive": false,
+                   "isShowPaging": false,
+                   "pagination": "datatablePagination"
+                 }'>
+            <thead class="thead-light">
+                <tr>
+                    <th>Id</th>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Name</th>
+                    <th>Account Code</th>
+                    @* <th>BusinessCategory</th> *@
+                    <th>Trans Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <a href="javascript:void(0);">@item.Id</a>
+                        </td>
+                        <td>@item.Code</td>
+                        <td>@item.COATypeName</td>
+                        <td>@item.AccountName</td>
+                        @* <td>@item.TenantName</td> *@
+                        <td>@item.AccountCode</td>
+                        <td>@item.CoaTranType</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a class="btn btn-white btn-sm" asp-action="Edit" asp-route-id="@item.Id" title="Edit">
+                                    <i class="bi-pencil-fill me-1"></i> Edit
+                                </a>
+                                <div class="btn-group">
+                                    <a class="btn btn-white btn-icon btn-sm dropdown-toggle dropdown-toggle-empty" asp-action="Edit" asp-route-id="@item.Id" title="Edit" data-bs-toggle="dropdown" aria-expanded="false">
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end mt-1" aria-labelledby="productsEditDropdown@(item.Id)">
+                                        <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id" title="Delete">
+                                            <i class="bi-trash dropdown-item-icon"></i> Delete
+                                        </a>
+                                        <a class="dropdown-item" asp-action="Delete" asp-route-id="@item.Id" title="Delete">
+                                            <i class="bi-eye dropdown-item-icon"></i> View
+                                        </a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    </div>
+
+    <div class="card-footer">
+        <div class="row justify-content-center justify-content-sm-between align-items-sm-center">
+            <div class="col-sm mb-2 mb-sm-0">
+                <div class="d-flex justify-content-center justify-content-sm-start align-items-center">
+                    <span class="me-2">Showing:</span>
+
+                    <!-- Select -->
+                    <div class="tom-select-custom">
+                        <select id="datatableEntries" class="js-select form-select form-select-borderless w-auto" autocomplete="off" data-hs-tom-select-options='{
+                            "searchInDropdown": false,
+                            "hideSearch": true
+                          }'>
+                            <option value="10">10</option>
+                            <option value="15" selected>15</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                    <span class="text-secondary me-2">of</span>
+                    <span id="datatableWithPaginationInfoTotalQty"></span>
+                </div>
+            </div>
+
+            <div class="col-sm-auto">
+                <div class="d-flex justify-content-center justify-content-sm-end">
+                    <!-- Pagination -->
+                    <nav id="datatablePagination" aria-label="Activity pagination"></nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+                    
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+}

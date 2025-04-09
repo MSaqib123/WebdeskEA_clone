@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="RepositoryEntity\CategoryRepository.cs" />
+    <Compile Remove="RepositoryEntity\CompanyRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\ICategoryRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\ICompanyRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\IOrderDetailRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\IOrderHeaderRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\IProductImageRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\IProductRepository.cs" />
+    <Compile Remove="RepositoryEntity\IRepository\IShoppingCartRepository.cs" />
+    <Compile Remove="RepositoryEntity\OrderDetailRepository.cs" />
+    <Compile Remove="RepositoryEntity\OrderHeaderRepository.cs" />
+    <Compile Remove="RepositoryEntity\ProductImageRepository.cs" />
+    <Compile Remove="RepositoryEntity\ProductRepository.cs" />
+    <Compile Remove="RepositoryEntity\ShoppingCartRepository.cs" />
+    <Compile Remove="Service\EmailService.cs" />
+    <Compile Remove="Service\IEmailService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.5" />
+    <PackageReference Include="Z.Dapper.Plus" Version="7.5.3" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebdeskEA.DataAccess\WebdeskEA.DataAccess.csproj" />
+  </ItemGroup>
+
+</Project>

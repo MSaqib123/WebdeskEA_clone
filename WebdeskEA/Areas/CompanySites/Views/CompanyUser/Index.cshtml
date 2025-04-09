@@ -1,0 +1,136 @@
+﻿@model List<CompanyDto>
+@{
+    ViewData["Title"] = "CompanyUser";
+}
+<div class="page-header">
+    <div class="page-title">
+        <h4>@(ViewBag.NameOfForm)</h4>
+        <h6>Manage your @(ViewBag.NameOfForm)</h6>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="table-top">
+            <div class="search-set">
+                <div class="search-path">
+                    <a class="btn btn-filter">
+                        <img src="~/Template/img/icons/filter.svg" alt="img">
+                    </a>
+                </div>
+                <div class="search-input">
+                    <a class="btn btn-searchset"><img src="~/Template/img/icons/search-white.svg" alt="img"></a>
+                </div>
+            </div>
+            <div class="wordset">
+                <ul>
+                    <li>
+                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="pdf"><img src="~/Template/img/icons/pdf.svg" alt="img"></a>
+                    </li>
+                    <li>
+                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="excel"><img src="~/Template/img/icons/excel.svg" alt="img"></a>
+                    </li>
+                    <li>
+                        <a data-bs-toggle="tooltip" data-bs-placement="top" title="print"><img src="~/Template/img/icons/printer.svg" alt="img"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table  datanew">
+                <thead>
+                    <tr>
+                        <th>
+                            <label class="checkboxs">
+                                <input type="checkbox" id="select-all">
+                                <span class="checkmarks"></span>
+                            </label>
+                        </th>
+                        
+                        <th>Company</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody class="products">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <label class="checkboxs">
+                                    <input type="checkbox">
+                                    <span class="checkmarks"></span>
+                                </label>
+                            </td>
+                            
+                            <td>@item.Name</td>
+                            <td>
+                                <a class="me-3" asp-action="Details" asp-route-id="@item.Id">
+                                    <img src="~/Template/img/icons/eye.svg" alt="img">
+                                </a>
+                                <a class="me-3" asp-action="Edit" asp-route-id="@item.Id">
+                                    <img src="~/Template/img/icons/edit.svg" alt="img">
+                                </a>
+                                <a class="me-3" asp-action="Delete" asp-route-id="@item.Id">
+                                    <img src="~/Template/img/icons/delete.svg" alt="img">
+                                </a>
+                                @* <a class="me-3" asp-action="Create" asp-route-id="@item.Id">
+                                    <img src="~/Template/img/icons/plus.svg" alt="img" style="filter: grayscale(100%);">
+                                </a>
+                                <a class="me-3" asp-action="Edit" asp-route-id="@item.Id">
+                                    <img src="~/Template/img/icons/edit.svg" alt="img">
+                                </a> *@
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+                                    
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+            }
+        })()
+    </script>
+}

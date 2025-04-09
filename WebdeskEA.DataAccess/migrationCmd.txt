@@ -1,0 +1,5 @@
+﻿Scaffold-DbContext 
+"Data Source=SAQIB\MSSQLSERVER01;Initial Catalog=WebdeskEA_20240706;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False" 
+-Provider Microsoft.EntityFrameworkCore.SqlServer 
+-OutputDir D:\Project\WebdeskEA\WebdeskEA.Models 
+-ContextDir D:\Project\WebdeskEA\WebdeskEA.DataAccess

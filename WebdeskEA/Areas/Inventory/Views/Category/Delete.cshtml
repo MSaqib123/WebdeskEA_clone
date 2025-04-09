@@ -1,0 +1,76 @@
+﻿@model CategoryDto
+@{
+    ViewData["Title"] = "Edit Category";
+}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm">
+            <h1 class="page-header-title">Delete @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<!-- Edit Form -->
+<form id="categoryForm" asp-action="Delete" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="mb-4">
+                <label asp-for="CategoryName" class="form-label">Category Name</label>
+                <input asp-for="CategoryName" class="form-control" disabled/>
+                <span asp-validation-for="CategoryName" class="text-danger"></span>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="mb-4">
+                <input type="file" id="ImageForSave" hidden asp-for="ImageForSave" disabled />
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Buttons -->
+    <div class="d-flex justify-content-start gap-3">
+        <button type="submit" class="btn btn-primary me-2">Save</button>
+        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+    </div>
+</form>
+
+@section scripts {
+    <script type="module">
+        import { ProBaseUploader } from '/Frontentjs/dynamicComponents/dynamicFileUploader.js';
+        const uploader = new ProBaseUploader({
+            labelName: 'No Image Selected',
+            linkName: 'Upload Image',
+            inputId: 'ImageForSave',
+            actionType: 'delete',
+            isImage: true,
+            isMultiImage: false,
+            imageTypes: 'png,jpg,jpeg',
+            editImage: '@Model.Image',
+            isFiles: false,
+            isMultiFile: false,
+            //fileTypes: 'doc,docx,pdf,txt'
+
+        });
+    </script>
+}

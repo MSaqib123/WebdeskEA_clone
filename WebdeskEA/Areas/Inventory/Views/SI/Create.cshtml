@@ -1,0 +1,810 @@
+﻿@model SIDto
+@{
+    ViewData["Title"] = "Sale Invoice (Create)";
+}
+
+@{
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+
+    // For the products
+    var productOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.ProductDtos.Select(x => new
+        {
+            value = x.Id,
+            text = x.ProductName,
+            unitPrice = x.ProductPrice,
+            stock = x.Stock
+        })
+    );
+
+    // For the tax master
+    var taxMasterJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.TaxMasterDtos);
+
+    // If your "create" action populates Model.SIDtlDtos with some lines:
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.SIDtlDtos ?? new List<SIDtlDto>());
+    // If you want to allow default tax lines, or none:
+    var prefilledTaxMaster = Newtonsoft.Json.JsonConvert.SerializeObject(Model.SIDtlTaxDtos ?? new List<SIDtlTaxDto>());
+}
+
+
+
+<!--====================== -->
+<!-- The Bootstrap modal -->
+<!--====================== -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createProductModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createCustomerModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Create @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-body">
+                <form id="productForm"
+                      asp-action="Create"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate
+                      class="js-validate">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="SICode" />
+                                    <input type="text"
+                                           class="form-control"
+                                           asp-for="SICode"
+                                           required data-msg="Code is required."
+                                           disabled />
+                                    <span class="invalid-feedback">Code is required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Invoice Date -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="SIDate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="SIDate"
+                                           class="form-control"
+                                           required
+                                           data-msg="Please select a valid date." />
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CustomerId">Customer</label>
+                                <div class="input-group tom-select-custom js-form-message">
+                                    <select id="CustomerId"
+                                            class="js-select form-select"
+                                            asp-for="CustomerId"
+                                            asp-items="@(new SelectList(Model.CustomerDtos, "Id", "Name"))"
+                                            required
+                                            data-msg="Please select a customer."
+                                            data-hs-tom-select-options='{"placeholder": "--- Select Customer ---"}'>
+                                        <option value="">--- Select Customer ---</option>
+                                    </select>
+                                    <!-- Button appended to the input group -->
+                                    <button type="button"
+                                            class="btn btn-soft-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#createCustomerModal">
+                                        <i class="bi-plus"></i>
+                                    </button>
+                                </div>
+                                <span class="invalid-feedback">Please select a valid customer.</span>
+                            </div>
+                        </div>
+
+                        <!-- Link to a Sales Order (Optional) -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="SOId">Sales Order</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select"
+                                            asp-for="SOId"
+                                            asp-items="@(new SelectList(Model.SODtos, "Id", "SOCode"))"
+                                            autocomplete="off"
+                                            data-hs-tom-select-options='{"placeholder": "--- Select SaleOrder ---"}'>
+                                        <option value="0">--- Select SaleOrder ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="SOId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Product / Service Table -->
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Product / Service</h5>
+                                        <button type="button" class="btn btn-soft-primary" data-bs-toggle="modal" data-bs-target="#createProductModal">
+                                            <i class="bi-plus"></i> New Product
+                                        </button>
+                                    </div>
+                                    <div class="card-body" id="siCreateContainer">
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle table-nowrap" id="productTable">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th width="30%">Product</th>
+                                                        <th>Current Stock</th>
+                                                        <th>Unit Price</th>
+                                                        <th width="10%">Quantity</th>
+                                                        <th>Price</th>
+                                                        <th>Price After VAT</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="productTableBody">
+                                                    <!-- Dynamic rows inserted by JS -->
+                                                </tbody>
+                                                <tfoot style="text-align:center">
+                                                    <tr>
+                                                        <td colspan="7">
+                                                            <button id="addRowBtn" class="btn btn-soft-primary">
+                                                                <i class="bi-plus"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <!-- Summaries -->
+                                        <div class="mt-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-primary text-primary fs-5">Total Quantity:</span>
+                                                            <span id="totalQuantity" class="text-dark fs-5 fw-bold">0</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-info text-info fs-5">Total Per Piece Price:</span>
+                                                            <span id="totalPerPiecePrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-warning text-warning fs-5">Total Unit Price:</span>
+                                                            <span id="totalUnitPrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-success text-success fs-5">Total Price:</span>
+                                                            <span id="grandTotal" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                    </div>
+                                                    <hr />
+                                                    <!-- If you want a row for aggregated VAT breakdown -->
+                                                    <div class="row mt-3" id="vatBreakdownRow"></div>
+                                                    <!-- Hidden container for dynamic VAT inputs -->
+                                                    <div id="vatBreakdownHiddenContainer" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div><!-- end card-body -->
+                                </div><!-- end card -->
+                            </div>
+                        </div>
+
+                        <!-- Finalization row: Subtotal, Discount, Total, etc. -->
+                        <div class="row d-flex justify-content-center">
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SISubTotal">SubTotal</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="SISubTotal" class="form-control subtotal-hidden" />
+                                        <input asp-for="SISubTotal"
+                                               class="form-control subtotal-visible"
+                                               disabled
+                                               data-msg="Subtotal is required.">
+                                        <span class="invalid-feedback">Please provide a valid subtotal.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SIDiscount">Discount</label>
+                                    <div class="js-form-message">
+                                        <input asp-for="SIDiscount"
+                                               class="form-control discount-input"
+                                               data-msg="Discount cannot exceed subtotal.">
+                                        <span class="invalid-feedback">Please provide a valid discount.</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="SITotal">Total</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="SITotal" class="form-control total-hidden" />
+                                        <input asp-for="SITotal"
+                                               class="form-control total-visible"
+                                               disabled
+                                               data-msg="Total is required." />
+                                        <span class="invalid-feedback">Please provide a valid total.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label for="SOTotalAfterVAT">Total (After VAT)</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="SITotalAfterVAT" class="form-control totalVat-hidden" />
+                                        <input type="text" asp-for="SITotalAfterVAT" class="form-control totalVat-Visible"
+                                               disabled value="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- end row -->
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary me-2" id="submitBtn">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div><!-- end card-body -->
+        </div><!-- end card -->
+    </div><!-- end col -->
+</div><!-- end row -->
+
+<style>
+    /* Fix for dropdown overflow in the table */
+    .tom-select-dropdown {
+        z-index: 1050 !important;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+</style>
+<!-- Optional script for "companyselect" -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+                // Some HS library initializations
+                new HSSideNav('.js-navbar-vertical-aside').init();
+                new HSFormSearch('.js-form-search');
+                HSBsDropdown.init();
+                HSCore.components.HSTomSelect.init('.js-select');
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'));
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'));
+                    }
+                });
+                HSCore.components.HSMask.init('.js-input-mask');
+
+                // Additional
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+
+                // Simple form validation: ensure at least one product line, each line > 0
+                const form = document.getElementById('productForm');
+                form.addEventListener('submit', function (ev) {
+                    const rows = document.querySelectorAll("#productTableBody tr");
+                    if (rows.length === 0) {
+                        ev.preventDefault();
+                        notyf.error({
+                            message: "You must add at least one product line.",
+                            duration: 10000
+                        });
+                        return;
+                    }
+
+                    let isValid = true;
+                    rows.forEach(r => {
+                        const qtyVal = parseFloat(r.querySelector('.product-qty')?.value) || 0;
+                        const totalVal = parseFloat(r.querySelector('.product-total')?.textContent) || 0;
+                        if (qtyVal <= 0 || totalVal <= 0) {
+                            isValid = false;
+                        }
+                    });
+                    if (!isValid) {
+                        ev.preventDefault();
+                        notyf.error({
+                            message: "Each product must have a valid quantity > 0 and total > 0.",
+                            duration: 10000
+                        });
+                    }
+                });
+            };
+        })();
+    </script>
+
+    <script type="module">
+        import { AdvancedDynamicTable } from '/Frontentjs/dynamicComponents/dynamicTable.js';
+
+        // 1) We parse the server data
+        let productsData = @Html.Raw(productOptions);
+        let prefilledRows = @Html.Raw(prefilledVoucher);         // e.g. lines from Model.SIDtlDtos
+        let prefilledTaxMaster = @Html.Raw(prefilledTaxMaster);  // if you have tax lines for create
+
+        // 2) Assign fake IDs to any existing lines
+        let fakeIdCounter = 1;
+        const siDtlIdMap = {};
+        prefilledRows.forEach(row => {
+            siDtlIdMap[fakeIdCounter] = row.Id;
+            row.Id = fakeIdCounter;
+            fakeIdCounter++;
+        });
+        // Also fix up the tax lines, if any
+        prefilledTaxMaster.forEach(taxLine => {
+            const matchedFake = Object.keys(siDtlIdMap).find(k => siDtlIdMap[k] === taxLine.SIDtlId);
+            if (matchedFake) {
+                taxLine.SIDtlId = parseInt(matchedFake, 10);
+            } else {
+                console.warn("No fake ID found for tax line => skipping");
+            }
+        });
+
+        // 3) Name attributes for SIDtlDtos
+        const siNameAttributes = {
+            base: "@nameof(@Model.SIDtlDtos)",
+            productId: "@nameof(SIDtlDto.ProductId)",
+            quantity: "@nameof(SIDtlDto.SIDtlQty)",
+            unitPrice: "@nameof(SIDtlDto.SIDtlPrice)",
+            total: "@nameof(SIDtlDto.SIDtlTotal)",
+            afterVAT: "@nameof(SIDtlDto.SIDtlTotalAfterVAT)",
+        };
+
+        // 4) Initialize the table
+        let advancedDynamicTableInstance = new AdvancedDynamicTable(
+            "productTableBody",
+            "addRowBtn",
+            {
+                productsData,
+                prefilledRows,
+                taxMasterData: @Html.Raw(taxMasterJson),
+                prefilledTaxMaster,
+
+                // Dynamic property names
+                taxDetailCollectionName: "SIDtlTaxDtos",
+                vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                detailIdFieldName: "SIDtlId",
+                docIdFieldName: "SIId",
+
+                // IDs of your discount/subtotal/total fields
+                subtotalId: "SISubTotal",
+                totalId: "SITotal",
+                discountId: "SIDiscount",
+                isDiscountAllowed: true,
+
+                // Because it's create mode
+                isEditMode: false,
+                mode: 'create',
+                editTemplateType: 'Template_1',
+
+                // Field mappings
+                unitPriceFields: ["unitprice", "productprice", "price"],
+                stockFields: ["stock", "currentstock", "quantityinstock"],
+                quantityFields: ["quantity", "qty"]
+            },
+            siNameAttributes
+        );
+
+        //=======================================================================
+        //============================ S.O. DropDown ============================
+        //=======================================================================
+        const mappingSoObject = (soDtlDtos, SIId) =>
+            soDtlDtos.map(soDtlDto => ({
+                Id: soDtlDto.id,
+                SIId: SIId,
+                ProductId: soDtlDto.productId,
+                SIDtlQty: soDtlDto.soDtlQty,
+                SIDtlPrice: soDtlDto.soDtlPrice,
+                SIDtlTotal: soDtlDto.soDtlTotal
+            }));
+
+        const mappingTaxObject = (soDtlTaxDtos) =>
+            soDtlTaxDtos.map(soDtlTaxDto => ({
+                AfterTaxAmount: soDtlTaxDto.afterTaxAmount,
+                Id: soDtlTaxDto.id,
+                SIDtlId: soDtlTaxDto.soDtlId,  // We'll replace with new fakes
+                SIId: soDtlTaxDto.soId,
+                TaxAmount: soDtlTaxDto.taxAmount,
+                TaxId: soDtlTaxDto.taxId
+            }));
+
+        const soDropdown = document.getElementById("SOId");
+        const customerDropdown = document.getElementById("CustomerId");
+
+        // Wait for TomSelect init
+        await new Promise((resolve) => {
+            const observer = new MutationObserver((mutations, obs) => {
+                if (soDropdown.tomselect) {
+                    obs.disconnect();
+                    resolve();
+                }
+            });
+            observer.observe(soDropdown, { attributes: true, childList: false, subtree: false });
+        });
+
+        const soTomSelect = soDropdown.tomselect;
+        soTomSelect.on("change", async function (selectedValue) {
+            const ctmr = customerDropdown.tomselect;
+            if (!selectedValue || selectedValue === "0") {
+                console.log("No SO => clearing lines");
+                if (ctmr) ctmr.clear();
+
+                advancedDynamicTableInstance.updateData({
+                    productsData,
+                    prefilledRows: [],
+                    taxMasterData: @Html.Raw(taxMasterJson),
+                    prefilledTaxMaster: [],
+                    taxDetailCollectionName: "SIDtlTaxDtos",
+                    vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                    detailIdFieldName: "SIDtlId",
+                    docIdFieldName: "SIId",
+                    subtotalId: "SISubTotal",
+                    totalId: "SITotal",
+                    discountId: "SIDiscount",
+                    isDiscountAllowed: true,
+                    isEditMode: false,
+                    mode: 'create',
+                    editTemplateType: 'Template_1'
+                }, siNameAttributes);
+
+                return;
+            }
+
+            // If user picks an SO => fetch lines
+            try {
+                const res = await fetch(`/Inventory/SO/GetSOById?id=${selectedValue}`);
+                if (!res.ok) throw new Error(`Error: ${res.status} - ${res.statusText}`);
+                const result = await res.json();
+                if (!result.success) {
+                    console.error("Failed to load so data =>", result.message);
+                    return;
+                }
+
+                const soData = result.data;   // { soDtlDtos, soDtlTaxDtos, customerId, ... }
+                console.log("SO data =>", soData);
+
+                // set customer
+                if (ctmr) ctmr.setValue(soData.customerId);
+
+                // map so lines => si lines
+                const lines = mappingSoObject(soData.soDtlDtos, selectedValue);
+                const taxLines = mappingTaxObject(soData.soDtlTaxDtos);
+
+                // reassign fake IDs
+                let localFake = 1;
+                const localMap = {};
+                lines.forEach(l => {
+                    localMap[localFake] = l.Id;
+                    l.Id = localFake;
+                    localFake++;
+                });
+                // fix tax lines
+                taxLines.forEach(t => {
+                    const matched = Object.keys(localMap).find(k => localMap[k] === t.SIDtlId);
+                    if (matched) {
+                        t.SIDtlId = parseInt(matched, 10);
+                    } else {
+                        console.warn("No match for tax line => skipping");
+                    }
+                });
+
+                // update table
+                advancedDynamicTableInstance.updateData({
+                    productsData,
+                    prefilledRows: lines,
+                    taxMasterData: @Html.Raw(taxMasterJson),
+                    prefilledTaxMaster: taxLines,
+
+                    taxDetailCollectionName: "SIDtlTaxDtos",
+                    vatBreakdownCollectionName: "SIVATBreakdownDtos",
+                    detailIdFieldName: "SIDtlId",
+                    docIdFieldName: "SIId",
+
+                    subtotalId: "SISubTotal",
+                    totalId: "SITotal",
+                    discountId: "SIDiscount",
+                    isDiscountAllowed: true,
+                    isEditMode: true,
+                    mode: 'edit',   // so user can edit them if needed
+                    editTemplateType: 'Template_1',
+
+                    unitPriceFields: ['sidtlprice', 'productprice', 'price'],
+                    stockFields: ['stock', 'currentstock', 'quantityinstock'],
+                    quantityFields: ['sidtlqty', 'quantity', 'qty']
+                }, siNameAttributes);
+
+            } catch (err) {
+                console.error("Error fetching lines =>", err);
+            }
+        });
+
+
+
+
+
+
+        //==================================================
+        //================= Product opening ================
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createProductModal').on('show.bs.modal', function (event) {
+                $('#createProductModalBody').empty();
+                let $modalBody = $('#createProductModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Product", new { area = "Inventory", typeOfPartialView = "Sale" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createProductForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateProductForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Product", new { area = "Inventory" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewProductToAllProductSelects(json.newProductId, json.newProductName);
+                            let modal = document.getElementById('createProductModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Product created: ${json.newProductName}`);
+
+                            productsData.push({
+                                value: json.newProductId,
+                                text: json.newProductName,
+                                unitPrice: json.newProductUnitPrice,
+                                stock: 0
+                            });
+                        } else {
+                            notyf.error("Failed to create product (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createProductModalBody').html(html);
+
+                        let $newForm = $('#createProductForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting product form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewProductToAllProductSelects(productId, productName) {
+                let $productSelects = $('.product-select');
+                if ($productSelects.length === 0) return; // No such dropdowns
+
+                $productSelects.each(function () {
+                    let tomSelectInstance = this.tomselect;
+
+                    if (tomSelectInstance) {
+                        // 1. Add the new option to TomSelect
+                        tomSelectInstance.addOption({
+                            value: productId,
+                            text: productName
+                        });
+
+                        // 2. Set the newly added product as the selected value
+                        //tomSelectInstance.setValue(productId);
+                    }
+                });
+            }
+
+        });
+
+
+
+
+
+        //==================================================
+        //================= Customer opening ===============
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createCustomerModal').on('show.bs.modal', function (event) {
+                $('#createCustomerModalBody').empty();
+                let $modalBody = $('#createCustomerModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Customer", new { area = "Management" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createCustomerForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateCustomerForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Customer", new { area = "Management" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewCustomerToDp(json.newId, json.newName);
+                            let modal = document.getElementById('createCustomerModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Supplier created: ${json.newName}`);
+                        } else {
+                            notyf.error("Failed to create Customer (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createCustomerModalBody').html(html);
+
+                        let $newForm = $('#createCustomerForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting Customer form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewCustomerToDp(Id, Name) {
+                // Get the DOM element from the jQuery object
+                let $select = $('#CustomerId');
+                if ($select.length > 0) {
+                    let selectElem = $select[0];
+                    // Check if TomSelect is initialized on this element
+                    if (selectElem.tomselect) {
+                        // Add the new option
+                        selectElem.tomselect.addOption({
+                            value: Id,
+                            text: Name
+                        });
+                        // Optionally, set it as the selected value:
+                        //selectElem.tomselect.setValue(Id);
+                    } else {
+                        console.log("TomSelect instance not found on #CustomerId.");
+                    }
+                }
+            }
+        });
+
+    </script>
+}

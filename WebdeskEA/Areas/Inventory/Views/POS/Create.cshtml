@@ -1,0 +1,1542 @@
+﻿@model PosVM
+
+@{
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Required Meta Tags Always Come First -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="favicon.ico">
+
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+
+  
+    <style data-hs-appearance-onload-styles>
+        * {
+            transition: unset !important;
+        }
+
+        body {
+            opacity: 0;
+        }
+    </style>
+
+    <script>
+        window.hs_config = { "autopath": "@@autopath", "deleteLine": "hs-builder:delete", "deleteLine:build": "hs-builder:build-delete", "deleteLine:dist": "hs-builder:dist-delete", "previewMode": false, "startPath": "/index.html", "vars": { "themeFont": "https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap", "version": "?v=1.0" }, "layoutBuilder": { "extend": { "switcherSupport": true }, "header": { "layoutMode": "default", "containerMode": "container-fluid" }, "sidebarLayout": "default" }, "themeAppearance": { "layoutSkin": "default", "sidebarSkin": "default", "styles": { "colors": { "primary": "#377dff", "transparent": "transparent", "white": "#fff", "dark": "132144", "gray": { "100": "#f9fafc", "900": "#1e2022" } }, "font": "Inter" } }, "languageDirection": { "lang": "en" }, "skipFilesFromBundle": { "dist": ["~/Template/js/hs.theme-appearance.js", "~/Template/js/hs.theme-appearance-charts.js", "~/Template/js/demo.js"], "build": ["~/Template/css/theme.css", "~/Template/vendor/hs-navbar-vertical-aside/dist/hs-navbar-vertical-aside-mini-cache.js", "~/Template/js/demo.js", "~/Template/css/theme-dark.html", "~/Template/css/docs.css", "~/Template/vendor/icon-set/style.html", "~/Template/js/hs.theme-appearance.js", "~/Template/js/hs.theme-appearance-charts.js", "node_modules/chartjs-plugin-datalabels/dist/chartjs-plugin-datalabels.min.html", "~/Template/js/demo.js"] }, "minifyCSSFiles": ["~/Template/css/theme.css", "~/Template/css/theme-dark.css"], "copyDependencies": { "dist": { "*~/Template/js/theme-custom.js": "" }, "build": { "*~/Template/js/theme-custom.js": "", "node_modules/bootstrap-icons/font/*fonts/**": "~/Template/css" } }, "buildFolder": "", "replacePathsToCDN": {}, "directoryNames": { "src": "./src", "dist": "./dist", "build": "./build" }, "fileNames": { "dist": { "js": "theme.min.js", "css": "theme.min.css" }, "build": { "css": "theme.min.css", "js": "theme.min.js", "vendorCSS": "vendor.min.css", "vendorJS": "vendor.min.js" } }, "fileTypes": "jpg|png|svg|mp4|webm|ogv|json" }
+        window.hs_config.gulpRGBA = (p1) => {
+            const options = p1.split(',')
+            const hex = options[0].toString()
+            const transparent = options[1].toString()
+
+            var c;
+            if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+                c = hex.substring(1).split('');
+                if (c.length == 3) {
+                    c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+                }
+                c = '0x' + c.join('');
+                return 'rgba(' + [(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') + ',' + transparent + ')';
+            }
+            throw new Error('Bad Hex');
+        }
+        window.hs_config.gulpDarken = (p1) => {
+            const options = p1.split(',')
+
+            let col = options[0].toString()
+            let amt = -parseInt(options[1])
+            var usePound = false
+
+            if (col[0] == "#") {
+                col = col.slice(1)
+                usePound = true
+            }
+            var num = parseInt(col, 16)
+            var r = (num >> 16) + amt
+            if (r > 255) {
+                r = 255
+            } else if (r < 0) {
+                r = 0
+            }
+            var b = ((num >> 8) & 0x00FF) + amt
+            if (b > 255) {
+                b = 255
+            } else if (b < 0) {
+                b = 0
+            }
+            var g = (num & 0x0000FF) + amt
+            if (g > 255) {
+                g = 255
+            } else if (g < 0) {
+                g = 0
+            }
+            return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16)
+        }
+        window.hs_config.gulpLighten = (p1) => {
+            const options = p1.split(',')
+
+            let col = options[0].toString()
+            let amt = parseInt(options[1])
+            var usePound = false
+
+            if (col[0] == "#") {
+                col = col.slice(1)
+                usePound = true
+            }
+            var num = parseInt(col, 16)
+            var r = (num >> 16) + amt
+            if (r > 255) {
+                r = 255
+            } else if (r < 0) {
+                r = 0
+            }
+            var b = ((num >> 8) & 0x00FF) + amt
+            if (b > 255) {
+                b = 255
+            } else if (b < 0) {
+                b = 0
+            }
+            var g = (num & 0x0000FF) + amt
+            if (g > 255) {
+                g = 255
+            } else if (g < 0) {
+                g = 0
+            }
+            return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16)
+        }
+    </script>
+
+    <!-- CSS Implementing Plugins -->
+    <link rel="stylesheet" href="~/Template/css/vendor.min.css">
+
+    <!-- CSS Front Template -->
+    <link rel="stylesheet" href="~/Template/css/theme.minc619.css?v=1.0">
+
+    <link rel="preload" href="~/Template/css/theme.min.css" data-hs-appearance="default" as="style">
+    <link rel="preload" href="~/Template/css/theme-dark.min.css" data-hs-appearance="dark" as="style">
+
+
+    <!-- Title -->
+    <title>POS | Front - Admin & Dashboard Template</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="favicon.ico">
+
+    <!-- Font (example) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        #productList {
+            /* Turn it into an 8-column grid */
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            /* Gap between cells (like "g-3"): adjust as desired */
+            gap: 1rem;
+            /* Let each grid item’s top edges line up (prevents weird vertical shifting) */
+            align-items: start;
+        }
+
+        .pos-product-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+            .pos-product-card:hover {
+                transform: scale(1.02);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            }
+
+        .pos-product-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 columns */
+            gap: 0.75rem; /* space between buttons */
+            margin-top: 1rem;
+        }
+
+        @@media (max-width: 576px) {
+            .button-grid {
+                grid-template-columns: 1fr; /* stack buttons on small screens */
+            }
+        }
+    </style>
+
+    <style>
+    .cart-body-small {
+        font-size: 0.85rem; /* smaller font */
+    }
+
+    .cart-body-small .form-select,
+    .cart-body-small .btn {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    .cart-body-small .card-body {
+        padding: 0.75rem;
+    }
+
+    .cart-body-small .button-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .cart-body-small select.form-select-sm {
+        height: calc(1.5em + 0.5rem + 2px);
+    }
+
+    @@media (max-width: 576px) {
+        .cart-body-small .button-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .cart-body-small .list-group-item {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+    }
+</style>
+</head>
+
+<body>
+    <script src="~/Template/js/hs.theme-appearance.js"></script>
+
+    <!-- ================================== -->
+    <!-- ========== MAIN CONTENT ========== -->
+    <!-- ================================== -->
+    <!-- MAIN POS CONTENT -->
+    <main id="content" role="main" class="main">
+        <div class="row align-items-start" style="width:100%">
+            <!-- ============================================== -->
+            <!--  Products Section (Left)                     -->
+            <!-- ============================================== -->
+            <div class="col-lg-8 mb-3">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center gap-2">
+                        <a class="btn btn-outline-secondary btn-sm" href="/Dashboard/DSB_Home/Index">
+                            <i class="bi-arrow-left"></i>
+                        </a>
+                        <h4 class="card-title mb-0"><i class="bi-bag me-1"></i> Products</h4>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-8">
+                                <input id="searchInput"
+                                       type="text"
+                                       class="form-control form-control-sm"
+                                       placeholder="Search products..."
+                                       oninput="filterProducts()" />
+                            </div>
+                            <div class="col-sm-4">
+                                <!-- Barcode button triggers a modal -->
+                                <button class="btn btn-soft-secondary btn-sm" onclick="openBarcodeModal()">
+                                    <i class="bi-upc-scan me-1"></i> Scan Barcode
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category Buttons (loaded via JS) -->
+                        <div id="categoryButtons" class="mb-3 d-flex flex-wrap gap-2"></div>
+
+                        <!-- Products Grid -->
+                        <div id="productList" class="">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!--  Cart Section (Right)                        -->
+            <!-- ============================================== -->
+            <!-- 1) Hidden input or direct script for DefaultTax -->
+            <input type="hidden" id="defaultTaxValue" value="@Model.POSConfig.DefaultTax" />
+            <!-- If your default tax is 5 => the input has "5" -->
+
+
+            <div class="col-lg-4 mb-3">
+                <div class="card position-sticky" style="top: 1rem;">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">
+                            <i class="bi-cart me-1"></i> Cart
+                        </h4>
+                    </div>
+                    <div class="card-body d-flex flex-column cart-body-small">
+                        <div class="col-sm-12">
+
+                            <div class="mb-4 d-flex align-items-end gap-2">
+                                <div class="flex-grow-1">
+                                    <label asp-for="CustomerId">Customer</label>
+                                    <div class="input-group tom-select-custom js-form-message">
+                                        <select id="CustomerId"
+                                                class="js-select form-select"
+                                                asp-for="CustomerId"
+                                                asp-items="@(new SelectList(Model.CustomerDtos, "Id", "Name"))"
+                                                required
+                                                data-msg="Please select a customer."
+                                                data-hs-tom-select-options='{"placeholder": "--- Select Customer ---"}'>
+                                            <option value="">--- Select Customer ---</option>
+                                        </select>
+                                        <!-- Add-customer Button -->
+                                        <button type="button"
+                                                class="btn btn-soft-secondary"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#createCustomerModal">
+                                            <i class="bi-plus"></i>
+                                        </button>
+                                    </div>
+                                    <span class="invalid-feedback">Please select a valid customer.</span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-soft-primary mb-1"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#abc"
+                                        title="Show Order">
+                                    <i class="bi-receipt"></i>
+                                    <!-- No text, only icon -->
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Cart Items -->
+                        <ul id="cartItems"
+                            class="list-group list-group-flush flex-grow-1 overflow-auto mb-3 border"
+                            style="max-height: 230px;">
+                        </ul>
+                        <div id="emptyCartMsg" class="text-center text-muted mb-3" style="display: none;">
+                            <i class="bi-basket3 fs-3 d-block mb-1"></i>
+                            <span>No items in cart</span>
+                        </div>
+
+                        <!-- Cart Summary -->
+                        <div id="cartSummary" class="cart-summary hidden">
+                            <!-- Display the default tax rate -->
+                            <div class="d-flex justify-content-between" id="cartTaxRate" style="font-weight: 500;">
+                                <!-- We'll fill this in JS -->
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal (No Tax):</span>
+                                <span id="subtotalAmount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Discount:</span>
+                                <span id="discountAmount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Net Total:</span>
+                                <span id="netTotalAmount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Total Tax:</span>
+                                <span id="taxAmount">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold border-bottom pb-3 mb-3">
+                                <span>Total After VAT:</span>
+                                <span id="totalAfterVAT">$0.00</span>
+                            </div>
+                        </div>
+
+                        
+                        <!-- Payment & discount buttons -->
+                        <div class="button-grid">
+                            @* <button class="btn btn-light border" onclick="openDiscountModal()">
+                            <i class="bi-percent me-1"></i> Add Discount
+                            </button> *@
+                            <button class="btn btn-outline-primary" onclick="payWithCash()">
+                                <i class="bi-cash-stack me-1"></i> Pay with Cash
+                            </button>
+
+                            <button class="btn btn-outline-secondary" onclick="payWithCard()">
+                                <i class="bi-credit-card-2-front me-1"></i> Pay with Card
+                            </button>
+
+                            <button class="btn btn-primary" onclick="completeSale()">
+                                <i class="bi-check-circle me-1"></i> Complete Sale
+                            </button>
+
+                            <button class="btn btn-soft-dark">
+                                <i class="bi-printer me-1"></i> Print
+                            </button>
+
+                            <button class="btn btn-secondary" id="holdSaleBtn" onclick="holdSale()">
+                                <i class="bi-basket nav-icon"></i> Hold Order
+                            </button>
+
+                            <button id="clearCartBtn" class="btn btn-outline-danger" onclick="clearCartAndStartNewOrder()">
+                                <i class="bi-trash"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============================================= -->
+        <!-- =============== Modals ====================== -->
+        <!-- ============================================= -->
+        <!-- 1) Create Customer Modal -->
+        <div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Create Customer</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body" id="createCustomerModalBody">
+                        <div class="text-center text-muted">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2) Generic Customer Modal -->
+        <div class="modal fade" id="customerModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi-person-circle me-1"></i> Customer Information
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form onsubmit="saveCustomerInfo(event)">
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label">Name:</label>
+                                <input type="text" class="form-control" id="customerName" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerPhone" class="form-label">Phone:</label>
+                                <input type="text" class="form-control" id="customerPhone" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerEmail" class="form-label">Email:</label>
+                                <input type="email" class="form-control" id="customerEmail" />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi-save me-1"></i> Save
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3) Barcode Modal -->
+        <div class="modal fade" id="barcodeModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi-upc-scan me-1"></i> Scan/Enter Barcode
+                        </h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted">
+                            Simulate scanning a barcode or type an ID of a product.
+                        </p>
+                        <input type="text"
+                               class="form-control mb-3"
+                               id="barcodeInput"
+                               placeholder="Barcode or Product ID..." />
+                        <div class="d-grid">
+                            <button class="btn btn-primary" onclick="handleBarcodeScan()">
+                                <i class="bi-upc me-1"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4) Discount Modal -->
+        <div class="modal fade" id="discountModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi-percent me-1"></i> Add Discount
+                        </h5>
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Apply a discount to the entire order.</p>
+                        <div class="mb-3">
+                            <label class="form-label">Discount Type:</label>
+                            <select id="discountTypeSelect" class="form-select">
+                                <option value="percent" selected>Percentage (%)</option>
+                                <option value="fixed">Fixed Amount ($)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Discount Value:</label>
+                            <input type="number"
+                                   step="any"
+                                   class="form-control"
+                                   id="discountValueInput"
+                                   placeholder="e.g. 10 => 10% or $10" />
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-primary" onclick="applyDiscount()">
+                                <i class="bi-check2-circle me-1"></i> Apply Discount
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5) Show Orders Modal (#abc) => We'll place held orders here -->
+        <div class="modal fade" id="abc" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                   <div class="modal-header">
+                       <h5 class="modal-title">Held Orders</h5>
+                       <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                   </div>
+                   <div class="modal-body" id="abcModalBody">
+                       <!-- We'll fill via JS (loadHeldOrdersIntoModal) -->
+                   </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <a class="js-go-to go-to position-fixed" href="javascript:;" style="visibility: hidden;" data-hs-go-to-options='{
+       "offsetTop": 700,
+       "position": {
+         "init": {
+           "right": "2rem"
+         },
+         "show": {
+           "bottom": "2rem"
+         },
+         "hide": {
+           "bottom": "-2rem"
+         }
+       }
+     }'>
+        <i class="bi-chevron-up"></i>
+    </a>
+
+    <script src="~/Template/js/vendor.min.js"></script>
+    <script src="~/Template/js/theme.min.js"></script>
+
+
+
+    
+    <!--========================================================-->
+    <!--============ POS Logic (products, cart, etc.) ==========-->
+    <!--========================================================-->
+    <script>
+        // ==================== 1) Globals ====================
+        // We match your existing "PosCartVM" and "PosCartItemVM" + "PosCartTaxItemVM"
+        //   => cart: to store "CartItems" => each has {Id, ProductName, ProductPrice, Qty}
+        //   => cartTaxItems: to store "CartTaxItems" => each has {ProductId, TaxAmount, AfterTaxAmount, TaxId}
+        let products = [];
+        let filteredProducts = [];
+        let cart = [];         // array of "CartItems" => {Id, ProductName, ProductPrice, Qty}
+        let cartTaxItems = []; // array of "CartTaxItems" => {ProductId, TaxAmount, AfterTaxAmount, TaxId}
+
+        let discountType = null;   // "percent" or "fixed"
+        let discountValue = 0;     // e.g. 10 => 10% or $10
+        let currentHoldSoId = null;
+        let defaultTax = 0;        // e.g. 5.5 => 5.5%
+
+        // ==================== 2) On Load ====================
+        document.addEventListener("DOMContentLoaded", async () => {
+            defaultTax = parseFloat(document.getElementById("defaultTaxValue").value) || 0;
+            document.getElementById("cartTaxRate").textContent = `Tax Rate: ${defaultTax.toFixed(2)}%`;
+
+            await loadCategories();
+            await loadProducts();
+
+            loadCartFromStorage();   // loads cart, discount, holdSoId from localStorage
+
+            // Then check if localStorage says "isholdPOS" is "true"
+            updateHoldButtonState(); // will disable/enable as needed
+
+            renderProducts(filteredProducts);
+            renderCart();
+        });
+
+        // ==================== 3) loadCategories / loadProducts ====================
+        async function loadCategories() {
+            let catContainer = document.getElementById("categoryButtons");
+            catContainer.innerHTML = `
+                        <button class="btn btn-outline-secondary btn-sm"
+                                onclick="filterByCategory('all')">All</button>
+                    `;
+            try {
+                let resp = await fetch('/Inventory/POS/GetCategories');
+                let result = await resp.json();
+                if (!result.success) return;
+                let cats = result.data || [];
+                cats.forEach(c => {
+                    catContainer.innerHTML += `
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        onclick="filterByCategory('${c.categoryName.toLowerCase()}')">
+                                    ${c.categoryName}
+                                </button>`;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                let resp = await fetch('/Inventory/POS/GetProducts');
+                let result = await resp.json();
+                if (!result.success) return;
+                products = result.data || [];
+                filteredProducts = [...products];
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // ==================== 4) Filter/Render Products ====================
+        function filterProducts() {
+            let val = document.getElementById("searchInput").value.toLowerCase();
+            filteredProducts = products.filter(p => p.productName.toLowerCase().includes(val));
+            renderProducts(filteredProducts);
+        }
+        function filterByCategory(cat) {
+            if (cat === 'all') {
+                filteredProducts = [...products];
+            } else {
+                filteredProducts = products.filter(p => (p.categoryName || "").toLowerCase() === cat);
+            }
+            document.getElementById("searchInput").value = "";
+            renderProducts(filteredProducts);
+        }
+
+        function renderProducts(prodArr) {
+            let prodList = document.getElementById("productList");
+            prodList.innerHTML = "";
+            prodArr.forEach(p => {
+                let col = document.createElement('div');
+                //col.className = 'col-md-3 col-sm-6';
+                let imgSrc = p.image ? p.image : "/Template/img/documentation/img8.jpg";
+                col.innerHTML = `<div class="card pos-product-card" onclick="addToCart(${p.id})">
+                <img src="${imgSrc}" class="pos-product-img card-img-top">
+                <div class="card-body p-2 text-center">
+                  <h6 class="mb-1 text-truncate">${p.productName}</h6>
+                  <p class="text-muted small mb-0 fw-bold">
+                    $${(p.productPrice || 0).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+                        `;
+                prodList.appendChild(col);
+            });
+        }
+
+        // ==================== 5) Cart Logic ====================
+        function addToCart(productId) {
+            let p = products.find(x => x.id === productId);
+            if (!p) return;
+
+            // Look up an existing item by 'Id'
+            let existing = cart.find(c => c.Id === p.id);
+            if (existing) {
+                existing.Qty++;
+            } else {
+                // Use uppercase property names
+                cart.push({
+                    Id: p.id,
+                    ProductName: p.productName,
+                    ProductPrice: p.productPrice,
+                    Qty: 1
+                });
+            }
+            renderCart();
+            saveCartToStorage();
+            updateTotals();
+        }
+
+        function removeCartItem(pid) {
+            cart = cart.filter(x => x.Id !== pid);
+            renderCart();
+            saveCartToStorage();
+            updateTotals();
+        }
+
+        function updateQuantity(pid, action) {
+            let c = cart.find(x => x.Id === pid);
+            if (!c) return;
+            if (action === 'increment') c.Qty++;
+            else if (action === 'decrement') c.Qty = Math.max(1, c.Qty - 1);
+            renderCart();
+            saveCartToStorage();
+            updateTotals();
+        }
+
+        function renderCart() {
+            let cItems = document.getElementById("cartItems");
+            let emptyMsg = document.getElementById("emptyCartMsg");
+            let summaryDiv = document.getElementById("cartSummary");
+
+            cItems.innerHTML = "";
+            if (cart.length === 0) {
+                emptyMsg.style.display = "block";
+                summaryDiv.classList.add("hidden");
+                return;
+            } else {
+                emptyMsg.style.display = "none";
+                summaryDiv.classList.remove("hidden");
+            }
+
+            cartTaxItems = []; // reset tax array
+            cart.forEach(item => {
+                // Use uppercase keys
+                let net = item.Qty * item.ProductPrice;
+                let tax = defaultTax > 0 ? net * (defaultTax / 100) : 0;
+                let afterVat = net + tax;
+
+                cartTaxItems.push({
+                    ProductId: item.Id,
+                    TaxAmount: tax,
+                    AfterTaxAmount: afterVat,
+                    TaxId: 0
+                });
+
+                let li = document.createElement('li');
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+                li.innerHTML = `
+                    <div>
+                        <strong>${item.ProductName}</strong><br/>
+                        <small class="text-muted">
+                            $${item.ProductPrice.toFixed(2)} x ${item.Qty} = $${net.toFixed(2)}
+                        </small>
+                        <div class="line-tax-info">
+                            <div>Tax: $${tax.toFixed(2)}</div>
+                            <div>AfterVAT: $${afterVat.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-danger btn-sm me-2" onclick="removeCartItem(${item.Id})">
+                            <i class="bi-x-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm me-2" onclick="updateQuantity(${item.Id}, 'decrement')">
+                            <i class="bi-dash"></i>
+                        </button>
+                        <span>${item.Qty}</span>
+                        <button class="btn btn-outline-secondary btn-sm ms-2" onclick="updateQuantity(${item.Id}, 'increment')">
+                            <i class="bi-plus"></i>
+                        </button>
+                    </div>
+                `;
+                cItems.appendChild(li);
+            });
+
+            updateTotals();
+        }
+
+
+        // ==================== 7) Update Totals ====================
+        function updateTotals() {
+            let subTotal = 0, totalTax = 0;
+            cart.forEach(i => {
+                let net = i.Qty * i.ProductPrice;
+                let tax = (defaultTax > 0) ? net * (defaultTax / 100) : 0;
+                subTotal += net;
+                totalTax += tax;
+            });
+
+            let discountAmt = 0;
+            if (discountType && discountValue > 0) {
+                if (discountType === 'percent') discountAmt = (subTotal * discountValue) / 100;
+                else discountAmt = discountValue;
+            }
+            discountAmt = Math.min(discountAmt, subTotal);
+
+            let netTotal = subTotal - discountAmt;
+            let afterVat = netTotal + totalTax;
+
+            document.getElementById('subtotalAmount').textContent = `$${subTotal.toFixed(2)}`;
+            document.getElementById('discountAmount').textContent = `$${discountAmt.toFixed(2)}`;
+            document.getElementById('netTotalAmount').textContent = `$${netTotal.toFixed(2)}`;
+            document.getElementById('taxAmount').textContent = `$${totalTax.toFixed(2)}`;
+            document.getElementById('totalAfterVAT').textContent = `$${afterVat.toFixed(2)}`;
+        }
+
+        // Payment demos
+        function payWithCash() {
+            if (cart.length === 0) { alert("Cart empty."); return; }
+            alert("Cash Payment Demo!");
+        }
+        function payWithCard() {
+            if (cart.length === 0) { alert("Cart empty."); return; }
+            alert("Card Payment Demo!");
+        }
+
+        // ==================== 8) completeSale ====================
+        async function completeSale() {
+            if (cart.length === 0) { alert('Cart empty!'); return; }
+            let cid = parseInt(document.getElementById("CustomerId").value) || 0;
+            if (!cid) { alert("Select customer first."); return; }
+
+            // ensure cartTaxItems is up to date
+            renderCart();
+
+            // Summaries for subTotal, discount, total
+            let subTotal = 0, totalTax = 0;
+            cart.forEach(x => {
+                subTotal += (x.Qty * x.ProductPrice);
+                totalTax += (defaultTax > 0) ? (x.Qty * x.ProductPrice) * (defaultTax / 100) : 0;
+            });
+            let discAmt = 0;
+            if (discountType && discountValue > 0) {
+                if (discountType === 'percent') discAmt = (subTotal * discountValue) / 100;
+                else discAmt = discountValue;
+            }
+            discAmt = Math.min(discAmt, subTotal);
+            let netTotal = subTotal - discAmt;
+            let finalTotal = netTotal + totalTax;
+
+            // Now build the exact object your "PosCartVM" expects:
+            // 1) CustomerId
+            // 2) DiscountType, DiscountValue
+            // 3) SubTotal
+            // 4) DiscountAmount
+            // 5) Total
+            // 6) SoId
+            // 7) CartItems (list of PosCartItemVM => {Id, ProductName, ProductPrice, Qty})
+            // 8) CartTaxItems (list of PosCartTaxItemVM => {ProductId, TaxAmount, AfterTaxAmount, TaxId})
+
+            let payload = {
+                CustomerId: cid,
+                DiscountType: discountType || "",  // e.g. "percent" or "fixed"
+                DiscountValue: discountValue,
+                SubTotal: subTotal,
+                DiscountAmount: discAmt,
+                Total: finalTotal,
+                SoId: currentHoldSoId || null,
+
+                CartItems: cart.map(i => ({
+                    Id: i.Id,
+                    ProductName: i.ProductName,
+                    ProductPrice: i.ProductPrice,
+                    Qty: i.Qty
+                })),
+                CartTaxItems: cartTaxItems.map(tx => ({
+                    ProductId: tx.ProductId,
+                    TaxAmount: tx.TaxAmount,
+                    AfterTaxAmount: tx.AfterTaxAmount,
+                    TaxId: tx.TaxId
+                }))
+            };
+
+            // Post
+            try {
+                let resp = await fetch('/Inventory/POS/CompleteSale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let result = await resp.json();
+                if (result.success) {
+                    alert("Sale completed!");
+                    cart = [];
+                    cartTaxItems = [];
+                    discountType = null;
+                    discountValue = 0;
+                    currentHoldSoId = null;
+                    renderCart();
+                    saveCartToStorage();
+                    updateTotals();
+                } else {
+                    alert("Fail: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error calling CompleteSale.");
+            }
+        }
+
+        // ==================== 9) holdSale ====================
+        async function holdSale() {
+            if (cart.length === 0) { alert("Cart empty."); return; }
+            let cid = parseInt(document.getElementById("CustomerId").value) || 0;
+            if (!cid) { alert("Select customer first!"); return; }
+
+            renderCart(); // recalc cartTaxItems
+
+            let subTotal = 0, totalTax = 0;
+            cart.forEach(x => {
+                subTotal += (x.Qty * x.ProductPrice);
+                totalTax += (defaultTax > 0) ? (x.Qty * x.ProductPrice) * (defaultTax / 100) : 0;
+            });
+            let discAmt = 0;
+            if (discountType && discountValue > 0) {
+                if (discountType === "percent") discAmt = (subTotal * discountValue) / 100;
+                else discAmt = discountValue;
+            }
+            discAmt = Math.min(discAmt, subTotal);
+            let netTotal = subTotal - discAmt;
+            let finalTotal = netTotal + totalTax;
+
+            let payload = {
+                CustomerId: cid,
+                DiscountType: discountType || "",
+                DiscountValue: discountValue,
+                SubTotal: subTotal,
+                DiscountAmount: discAmt,
+                Total: finalTotal,
+                SoId: currentHoldSoId || null,
+
+                CartItems: cart.map(i => ({
+                    Id: i.Id,
+                    ProductName: i.ProductName,
+                    ProductPrice: i.ProductPrice,
+                    Qty: i.Qty
+                })),
+                CartTaxItems: cartTaxItems.map(tx => ({
+                    ProductId: tx.ProductId,
+                    TaxAmount: tx.TaxAmount,
+                    AfterTaxAmount: tx.AfterTaxAmount,
+                    TaxId: tx.TaxId
+                }))
+            };
+
+            try {
+                let resp = await fetch('/Inventory/POS/HoldSale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let result = await resp.json();
+                if (result.success) {
+                    alert("Order on hold!");
+                    cart = [];
+                    cartTaxItems = [];
+                    discountType = null;
+                    discountValue = 0;
+                    currentHoldSoId = null;
+                    renderCart();
+                    saveCartToStorage();
+                    updateTotals();
+                } else {
+                    alert("Fail: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error calling HoldSale.");
+            }
+        }
+
+        function updateHoldButtonState() {
+            let holdBtn = document.getElementById("holdSaleBtn");
+            if (!holdBtn) return;
+
+            // Check localStorage
+            const isHoldPOS = localStorage.getItem("isholdPOS");
+
+            if (isHoldPOS === "true") {
+                // We have an existing hold => rename button
+                holdBtn.textContent = "Update Held Order";
+                holdBtn.onclick = updateHeldOrder;
+            } else {
+                // No existing hold => normal hold button
+                holdBtn.textContent = "Hold Order";
+                holdBtn.onclick = holdSale;
+            }
+        }
+
+
+        async function updateHeldOrder() {
+            if (cart.length === 0) {
+                alert("Cart empty.");
+                return;
+            }
+            let cid = parseInt(document.getElementById("CustomerId").value) || 0;
+            if (!cid) {
+                alert("Select customer first!");
+                return;
+            }
+
+            // same logic as holdSale(), but semantically we’re “updating”
+            renderCart(); // recalc cartTaxItems
+
+            let subTotal = 0, totalTax = 0;
+            cart.forEach(x => {
+                subTotal += (x.Qty * x.ProductPrice);
+                totalTax += (defaultTax > 0)
+                    ? (x.Qty * x.ProductPrice) * (defaultTax / 100)
+                    : 0;
+            });
+
+            let discAmt = 0;
+            if (discountType && discountValue > 0) {
+                if (discountType === "percent") {
+                    discAmt = (subTotal * discountValue) / 100;
+                } else {
+                    discAmt = discountValue;
+                }
+            }
+            discAmt = Math.min(discAmt, subTotal);
+            let netTotal = subTotal - discAmt;
+            let finalTotal = netTotal + totalTax;
+
+            let payload = {
+                CustomerId: cid,
+                DiscountType: discountType || "",
+                DiscountValue: discountValue,
+                SubTotal: subTotal,
+                DiscountAmount: discAmt,
+                Total: finalTotal,
+                SoId: currentHoldSoId || null,   // crucial for update!
+
+                CartItems: cart.map(i => ({
+                    Id: i.Id,
+                    ProductName: i.ProductName,
+                    ProductPrice: i.ProductPrice,
+                    Qty: i.Qty
+                })),
+                CartTaxItems: cartTaxItems.map(tx => ({
+                    ProductId: tx.ProductId,
+                    TaxAmount: tx.TaxAmount,
+                    AfterTaxAmount: tx.AfterTaxAmount,
+                    TaxId: tx.TaxId
+                }))
+            };
+
+            try {
+                let resp = await fetch('/Inventory/POS/HoldSale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let result = await resp.json();
+                if (result.success) {
+                    alert("Held order updated successfully!");
+                    // If you want to keep the cart in place, do NOT clear it out.
+                    // Or if you prefer to clear it, do the same logic as holdSale:
+
+                    // cart = [];
+                    // cartTaxItems = [];
+                    // discountType = null;
+                    // discountValue = 0;
+                    // currentHoldSoId = null;
+                    // localStorage.removeItem("isholdPOS");
+                    // localStorage.removeItem("selectedCustomerId");
+                    // renderCart();
+                    // updateTotals();
+                    // saveCartToStorage();
+                    // updateHoldButtonState();
+
+                } else {
+                    alert("Fail: " + result.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error calling HoldSale to update existing hold.");
+            }
+        }
+
+
+
+        function clearCartAndStartNewOrder() {
+            // If there's already nothing in the cart, optionally confirm or skip:
+            if (cart.length === 0 && !currentHoldSoId) {
+                alert("Cart is already empty.");
+                return;
+            }
+
+            // Confirm if you want – or just proceed:
+            const confirmClear = confirm("Are you sure you want to clear this cart and start a new order?");
+            if (!confirmClear) return;
+
+            // Clear all relevant data
+            cart = [];
+            cartTaxItems = [];
+            discountType = null;
+            discountValue = 0;
+            currentHoldSoId = null;
+            document.getElementById("CustomerId").value = "";
+            localStorage.removeItem("isholdPOS");
+            localStorage.removeItem("selectedCustomerId");
+            renderCart();
+            saveCartToStorage();
+            updateHoldButtonState();
+            updateTotals();
+
+            alert("Cart cleared. You can start a new order now!");
+        }
+
+
+        // ============== 10) Show/Load Held Orders ==============
+        // 8) Show/Load Held Orders
+        // We have a button that triggers the #abc modal for "Show Order".
+        // We'll fill that modal with the list of held orders:
+        document.getElementById('abc').addEventListener('show.bs.modal', function () {
+            loadHeldOrdersIntoModal();
+        });
+
+        async function loadHeldOrdersIntoModal() {
+            const modalBody = document.getElementById('abcModalBody');
+            modalBody.innerHTML = 'Loading...';
+
+            try {
+                let resp = await fetch('/Inventory/POS/GetHoldOrders');
+                let result = await resp.json();
+                if (!result.success) {
+                    modalBody.innerHTML = 'Failed: ' + result.message;
+                    return;
+                }
+                let orders = result.data;
+                if (!orders || orders.length === 0) {
+                    modalBody.innerHTML = '<div class="text-center text-muted">No held orders found.</div>';
+                    return;
+                }
+
+                let html = '<ul class="list-group">';
+                orders.forEach(o => {
+                    html += `
+                                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                          <strong>${o.soCode}</strong><br/>
+                                          <small>Date: ${o.soDate}</small><br/>
+                                          <small>Total: $${o.soTotal}</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-primary" onclick="loadOneHeldOrder(${o.id})">
+                                          Load
+                                        </button>
+                                      </li>
+                                    `;
+                });
+                html += '</ul>';
+
+                modalBody.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                modalBody.innerHTML = 'Error loading held orders.';
+            }
+        }
+
+        async function loadOneHeldOrder(soId) {
+            try {
+                let resp = await fetch('/Inventory/POS/GetHoldOrderDetails?soId=' + soId);
+                let result = await resp.json();
+                if (!result.success) {
+                    alert(result.message);
+                    return;
+                }
+
+                let data = result.data;
+
+                cart = [];
+                cartTaxItems = [];
+
+                data.cartItems.forEach(item => {
+                    cart.push({
+                        Id: item.id,
+                        ProductName: item.productName || "Unknown",
+                        ProductPrice: item.productPrice,
+                        Qty: item.qty
+                    });
+                });
+
+                if (data.cartTaxItems) {
+                    data.cartTaxItems.forEach(t => {
+                        cartTaxItems.push({
+                            ProductId: t.productId,
+                            TaxAmount: t.taxAmount,
+                            AfterTaxAmount: t.afterTaxAmount,
+                            TaxId: t.taxId
+                        });
+                    });
+                }
+
+                // Discount
+                currentHoldSoId = data.soId;
+                discountType = data.discount > 0 ? "fixed" : null;
+                discountValue = data.discount;
+
+                const ts = document.getElementById('CustomerId');
+                ts.tomselect.setValue(data.customerId);
+
+                if (data.isholdPOS === true) {
+                    localStorage.setItem("isholdPOS", "true");
+                } else {
+                    localStorage.removeItem("isholdPOS");
+                }
+                
+                // Store customerId in localStorage
+                localStorage.setItem('selectedCustomerId', data.customerId);
+
+                // close the "Show Order" modal
+                let modalEl = document.getElementById('abc');
+                let modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                // re-render
+                renderCart();
+                saveCartToStorage(); // writes cart, discount, currentHoldSoId, etc.
+                updateHoldButtonState(); // disable hold button if isHoldPOS is "true"
+
+                alert("Hold order loaded into cart!");
+            } catch (err) {
+                alert('Error loading hold order details.');
+                console.error(err);
+            }
+        }
+
+
+
+
+
+        // ============== 11) Discount & Barcode & LocalStorage ==============
+        function openDiscountModal(){
+            if(cart.length===0){
+                alert("Cart empty, cannot discount!");
+                return;
+            }
+            let m = document.getElementById("discountModal");
+            let modal= new bootstrap.Modal(m);
+            modal.show();
+        }
+
+        function applyDiscount(){
+            let typeSel = document.getElementById("discountTypeSelect");
+            let valInput = document.getElementById("discountValueInput");
+            discountType = typeSel.value;
+            discountValue = parseFloat(valInput.value)||0;
+
+            let m= document.getElementById("discountModal");
+            let modal= bootstrap.Modal.getInstance(m);
+            if(modal) modal.hide();
+
+            updateTotals();
+        }
+
+        function openBarcodeModal(){
+            let m= document.getElementById("barcodeModal");
+            let modal= new bootstrap.Modal(m);
+            modal.show();
+        }
+        function handleBarcodeScan(){
+            let inp= document.getElementById("barcodeInput");
+            let code= inp.value.trim();
+            if(!code) { alert("Enter a barcode or product ID!"); return;}
+            let productId= parseInt(code,10);
+            if(isNaN(productId)) { alert("Barcode not recognized! (demo)"); return;}
+            addToCart(productId);
+            inp.value="";
+
+            let m= document.getElementById("barcodeModal");
+            let modal= bootstrap.Modal.getInstance(m);
+            if(modal) modal.hide();
+        }
+
+
+       
+        // // 12) Example of saving customer info (already in your code)
+        // function openCustomerModal() {
+        //     const modalEl = document.getElementById('customerModal');
+        //     const modal = new bootstrap.Modal(modalEl);
+        //     modal.show();
+        // }
+        // function saveCustomerInfo(e) {
+        //     e.preventDefault();
+        //     const name = document.getElementById('customerName').value;
+        //     const phone = document.getElementById('customerPhone').value;
+        //     const email = document.getElementById('customerEmail').value;
+        //     console.log('Customer Info:', { name, phone, email });
+        //     const modalEl = document.getElementById('customerModal');
+        //     const modal = bootstrap.Modal.getInstance(modalEl);
+        //     modal.hide();
+        //     alert('Customer information saved. (Demo)');
+        // }
+
+
+
+
+        function saveCartToStorage() {
+            let data = {
+                cart,
+                discountType,
+                discountValue,
+                currentHoldSoId
+            };
+            localStorage.setItem('posCartData', JSON.stringify(data));
+        }
+        function loadCartFromStorage() {
+            let s = localStorage.getItem('posCartData');
+            if (!s) return;
+            try {
+                let p = JSON.parse(s);
+                cart = p.cart || [];
+                discountType = p.discountType || null;
+                discountValue = p.discountValue || 0;
+                currentHoldSoId = p.currentHoldSoId || null;
+            } catch (e) {
+                console.error(e);
+            }
+
+            let selectedCustomerId = localStorage.getItem('selectedCustomerId');
+            if (selectedCustomerId) {
+                let selectEl = document.getElementById('CustomerId');
+                if (selectEl && selectEl.tomselect) {
+                    selectEl.tomselect.setValue(selectedCustomerId.toString());
+                }
+            }
+        }
+    </script>
+
+    <script>
+        //==================================================
+        //================= Customer opening ===============
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createCustomerModal').on('show.bs.modal', function (event) {
+                $('#createCustomerModalBody').empty();
+                let $modalBody = $('#createCustomerModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                // let url = '@Url.Action("CreatePartial", "Customer", new { area = "Management" })';
+                let url = '@Url.Action("CreatePartial", "Customer", new { area = "Management" })' + '?CustomerComingFrom=PO';
+
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createCustomerForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateCustomerForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Customer", new { area = "Management" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewCustomerToDp(json.newId, json.newName);
+                            let modal = document.getElementById('createCustomerModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Supplier created: ${json.newName}`);
+                        } else {
+                            notyf.error("Failed to create Customer (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createCustomerModalBody').html(html);
+
+                        let $newForm = $('#createCustomerForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateCustomerForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting Customer form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewCustomerToDp(Id, Name) {
+                // Get the DOM element from the jQuery object
+                let $select = $('#CustomerId');
+                if ($select.length > 0) {
+                    let selectElem = $select[0];
+                    // Check if TomSelect is initialized on this element
+                    if (selectElem.tomselect) {
+                        // Add the new option
+                        selectElem.tomselect.addOption({
+                            value: Id,
+                            text: Name
+                        });
+                        // Optionally, set it as the selected value:
+                        //selectElem.tomselect.setValue(Id);
+                    } else {
+                        console.log("TomSelect instance not found on #CustomerId.");
+                    }
+                }
+            }
+        });
+
+    </script>
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask');
+            }
+        })();
+
+        (function () {
+            // INITIALIZATION OF NAVBAR
+            // =======================================================
+            new HSHeader('#header').init()
+
+
+            // INITIALIZATION OF GO TO
+            // =======================================================
+            new HSGoTo('.js-go-to')
+
+
+            // TRANSFORMATION
+            // =======================================================
+            const $figure = document.querySelector('.js-img-comp')
+
+            if (window.pageYOffset) {
+                $figure.style.transform = `rotateY(${-18 + window.pageYOffset}deg) rotateX(${window.pageYOffset / 5}deg)`
+            }
+
+            let y = -18 + window.pageYOffset,
+                x = 55 - window.pageYOffset
+
+            const figureTransformation = function () {
+                if (-18 + window.pageYOffset / 5 > 0) {
+                    y = 0
+                }
+
+                if (55 - window.pageYOffset / 3 < 0) {
+                    x = 0
+                }
+
+                y = -18 + window.pageYOffset / 5 < 0 ? -18 + window.pageYOffset / 5 : y
+                x = 55 - window.pageYOffset / 3 > 0 ? 55 - window.pageYOffset / 3 : x
+                $figure.style.transform = `rotateY(${y}deg) rotateX(${x}deg)`
+            }
+
+            figureTransformation()
+            window.addEventListener('scroll', figureTransformation)
+        })()
+
+
+            (function () {
+                // STYLE SWITCHER
+                // =======================================================
+                const $dropdownBtn = document.getElementById('selectThemeDropdown') // Dropdowon trigger
+                const $variants = document.querySelectorAll(`[aria-labelledby="selectThemeDropdown"] [data-icon]`) // All items of the dropdown
+
+                // Function to set active style in the dorpdown menu and set icon for dropdown trigger
+                const setActiveStyle = function () {
+                    $variants.forEach($item => {
+                        if ($item.getAttribute('data-value') === HSThemeAppearance.getOriginalAppearance()) {
+                            $dropdownBtn.innerHTML = `<i class="${$item.getAttribute('data-icon')}" />`
+                            return $item.classList.add('active')
+                        }
+
+                        $item.classList.remove('active')
+                    })
+                }
+
+                // Add a click event to all items of the dropdown to set the style
+                $variants.forEach(function ($item) {
+                    $item.addEventListener('click', function () {
+                        HSThemeAppearance.setAppearance($item.getAttribute('data-value'))
+                    })
+                })
+
+                // Call the setActiveStyle on load page
+                setActiveStyle()
+
+                // Add event listener on change style to call the setActiveStyle function
+                window.addEventListener('on-hs-appearance-change', function () {
+                    setActiveStyle()
+                })
+            })()
+    </script>
+
+
+</body>
+</html>
+
+
+
+
+
+

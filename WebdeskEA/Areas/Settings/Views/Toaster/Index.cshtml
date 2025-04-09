@@ -1,0 +1,45 @@
+﻿<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+
+<link href="~/lib/notyf/notyf.min.css" rel="stylesheet" />
+<script src="~/lib/notyf/notyf.min.js"></script>
+<script src="~/lib/notyf/customnotyf.js"></script>
+
+
+<div class="container">
+
+    <button id="warningButton" class="btn btn-primary">Show Warning</button>
+    <button id="errorButton" class="btn btn-primary">Show Error</button>
+    <button id="successButton" class="btn btn-primary">Show Success</button>
+    <button id="infoButton" class="btn btn-primary">Show Info</button>
+</div>
+
+
+    <script>
+        notyf.success('This is a success message');
+        notyf.error('This is an error message');
+
+        // $('#warningButton').click(function () {
+        //     notyf.open({
+        //         type: 'warning',
+        //         message: 'This is a warning message'
+        //     });
+        // });
+
+        // $('#errorButton').click(function () {
+        //     notyf.error('This is an error message');
+        // });
+
+        // $('#successButton').click(function () {
+        //     notyf.success('This is a success message');
+        // });
+
+        // $('#infoButton').click(function () {
+        //     notyf.open({
+        //         type: 'info',
+        //         message: 'This is an info message'
+        //     });
+
+        // });
+    </script>
+

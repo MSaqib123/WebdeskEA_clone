@@ -1,0 +1,729 @@
+﻿@model RegistrationViewModel
+@{
+    ViewData["Title"] = "Profile";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+@{
+   var isLoggedIn = User.Identity!.IsAuthenticated;
+   var profileImage = Model.ApplicationUserDto.ProfileImage ?? "~/Template/img/160x160/img1.jpg";
+}
+
+
+<div class="row justify-content-lg-center">
+    <div class="col-lg-10">
+        <div class="profile-cover">
+            <div class="profile-cover-img-wrapper">
+                <img id="profileCoverImg" class="profile-cover-img" src="~/Template/img/1920x400/img2.jpg" alt="Image Description">
+                @* <div class="profile-cover-content profile-cover-uploader p-3">
+                    <input type="file" class="js-file-attach profile-cover-uploader-input" id="profileCoverUplaoder" data-hs-file-attach-options='{
+                "textTarget": "#profileCoverImg",
+                "mode": "image",
+                "targetAttr": "src",
+                "allowTypes": [".png", ".jpeg", ".jpg"]
+                }'>
+                    <label class="profile-cover-uploader-label btn btn-sm btn-white" for="profileCoverUplaoder">
+                        <i class="bi-camera-fill"></i>
+                        <span class="d-none d-sm-inline-block ms-1">Upload header</span>
+                    </label>
+                </div> *@
+            </div>
+        </div>
+        <div class="text-center mb-5">
+            <label class="avatar avatar-xxl avatar-circle avatar-uploader profile-cover-avatar" for="editAvatarUploaderModal">
+                @* <img id="editAvatarImgModal" class="avatar-img" src="~/Template/img/160x160/img6.jpg" alt="Image Description"> *@
+                <img id="editAvatarImgModal" class="avatar-img" src="@Url.Content(@profileImage)" alt="Image Description">
+
+                @* <input type="file" class="js-file-attach avatar-uploader-input" id="editAvatarUploaderModal" data-hs-file-attach-options='{
+                "textTarget": "#editAvatarImgModal",
+                "mode": "image",
+                "targetAttr": "src",
+                "allowTypes": [".png", ".jpeg", ".jpg"]
+            }'>
+
+                <span class="avatar-uploader-trigger">
+                    <i class="bi-pencil-fill avatar-uploader-icon shadow-sm"></i>
+                </span> *@
+            </label>
+            <h1 class="page-header-title">@Model.ApplicationUserDto.Name <i class="bi-patch-check-fill fs-2 text-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Top endorsed"></i></h1>
+            @* <ul class="list-inline list-px-2">
+                <li class="list-inline-item">
+                    <i class="bi-building me-1"></i>
+                    <span>Pixeel Ltd.</span>
+                </li>
+
+                <li class="list-inline-item">
+                    <i class="bi-geo-alt me-1"></i>
+                    <a href="#">London,</a>
+                    <a href="#">UK</a>
+                </li>
+
+                <li class="list-inline-item">
+                    <i class="bi-calendar-week me-1"></i>
+                    <span>Joined March 2013</span>
+                </li>
+            </ul> *@
+        </div>
+
+        <div class="js-nav-scroller hs-nav-scroller-horizontal mb-5">
+            <span class="hs-nav-scroller-arrow-prev" style="display: none;">
+                <a class="hs-nav-scroller-arrow-link" href="javascript:;">
+                    <i class="bi-chevron-left"></i>
+                </a>
+            </span>
+
+            <span class="hs-nav-scroller-arrow-next" style="display: none;">
+                <a class="hs-nav-scroller-arrow-link" href="javascript:;">
+                    <i class="bi-chevron-right"></i>
+                </a>
+            </span>
+
+            <ul class="nav nav-tabs align-items-center">
+                <li class="nav-item">
+                    <a class="nav-link active" id="profile-tab" href="#" data-view="Profile">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="company-tab" href="#" data-view="Company">Company</a>
+                </li>
+                @*<li class="nav-item">
+                    <a class="nav-link active disabled" href="#">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Company</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Projects <span class="badge bg-soft-dark text-dark rounded-circle ms-1">3</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#">Connections</a>
+                </li> *@
+
+                <li class="nav-item ms-auto">
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-white btn-sm" href="account-settings.html">
+                            <i class="bi-person-plus-fill me-1"></i> Edit profile
+                        </a>
+                        <a class="btn btn-white btn-icon btn-sm" href="#">
+                            <i class="bi-list-ul me-1"></i>
+                        </a>
+                        <div class="dropdown nav-scroller-dropdown">
+                            <button type="button" class="btn btn-white btn-icon btn-sm" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi-three-dots-vertical"></i>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-menu-end mt-1" aria-labelledby="profileDropdown">
+                                <span class="dropdown-header">Settings</span>
+
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi-share-fill dropdown-item-icon"></i> Share profile
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi-slash-circle dropdown-item-icon"></i> Block page and profile
+                                </a>
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi-info-circle dropdown-item-icon"></i> Suggest edits
+                                </a>
+
+                                <div class="dropdown-divider"></div>
+
+                                <span class="dropdown-header">Feedback</span>
+
+                                <a class="dropdown-item" href="#">
+                                    <i class="bi-flag dropdown-item-icon"></i> Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="row" id="partialViewContainer">
+            <!-- Default profile partial view is loaded here initially -->
+            @await Html.PartialAsync("_Profile", Model)
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.querySelectorAll('a[data-view]');
+            const partialViewContainer = document.getElementById('partialViewContainer');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function (event) {
+                    event.preventDefault();
+
+                    const view = tab.getAttribute('data-view');
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    fetch(`@Url.Action("LoadPartialView", "ProfileDisplay")?viewName=${view}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error("Network response was not ok");
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            partialViewContainer.innerHTML = html;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching partial view:', error);
+                        });
+                });
+            });
+        });
+    </script>
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+}
+
+
+@{
+    /*
+     @if (!ViewData.ModelState.IsValid)
+    {
+    foreach (var state in ViewData.ModelState)
+        {
+        if (state.Value.Errors.Count > 0)
+            {
+            foreach (var error in state.Value.Errors)
+                {
+                    <script>
+                        notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                });
+            </script>
+    }
+                }
+            }
+        }
+
+
+        <link href="~/lib/notyf/notyf.min.css" rel="stylesheet" />
+
+        <main id="content" class="main pt-0">
+        <div class="container-fluid px-0">
+    <form enctype="multipart/form-data"
+            asp-area="Registration"
+            asp-controller="Registration"
+            asp-action="Index"
+            method="post"
+            class="js-step-form-validate js-validate"
+            data-hs-step-form-options='{
+        "progressSelector": "#addUserStepFormProgress",
+        "stepsSelector": "#addUserStepFormContent",
+        "endSelector": "#addUserFinishBtn",
+    "isValidate": true
+        }'>
+        <div class="row justify-content-lg-center">
+
+            <!-- ==============================-->
+            <!-- ======== Right Side ==========-->
+            <!-- ==============================-->
+            <div class="col-lg-12 px-4 pt-5 pe-5">
+                <!--=====================-->
+                <!-- Step -->
+                <!--=====================-->
+                <ul id="addUserStepFormProgress"
+                    class="js-step-progress step step-sm step-icon-sm step step-inline step-item-between mb-3 mb-md-5">
+                        <li class="step-item">
+                        <a class="step-content-wrapper" href="javascript:;" data-hs-step-form-next-options='{
+                        "targetSelector": "#Tenant"
+                            }'>
+                            <span class="step-icon step-icon-soft-dark">1</span>
+                            <div class="step-content">
+                                <span class="step-title">SignUp Detail</span>
+                        </div>
+                    </a>
+                    </li>
+
+                        <li class="step-item">
+                        <a class="step-content-wrapper" href="javascript:;" data-hs-step-form-next-options='{
+                        "targetSelector": "#RegisterCompany"
+                            }'>
+                            <span class="step-icon step-icon-soft-dark">2</span>
+                            <div class="step-content">
+                                <span class="step-title">Company Detail</span>
+                        </div>
+                    </a>
+                </li>
+                </ul>
+
+                <!--=====================-->
+                <!-- Content Step Form -->
+                <!--=====================-->
+                <div id="addUserStepFormContent">
+                    <!--=====================-->
+                    <!--= Tenant =-->
+                    <!--=====================-->
+                    <div id="Tenant" class="card card-lg active">
+                        <!-- Body -->
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                <label class="col-sm-3 col-form-label form-label">Logo</label>
+                                    <div class="col-sm-9">
+                                    <div class="d-flex align-items-center">
+                                        <!-- Avatar -->
+                                        <label class="avatar avatar-xl avatar-circle avatar-uploader me-5" for="avatarUploader">
+                                            <img id="avatarImg" class="avatar-img" src="~/Template/img/160x160/img1.jpg" alt="Image Description">
+                                            <input type="file" asp-for="CompanyDto.Logo" class="js-file-attach avatar-uploader-input" id="avatarUploader" data-hs-file-attach-options='{
+                                                "textTarget": "#avatarImg",
+                                                "mode": "image",
+                                                "targetAttr": "src",
+                                                "resetTarget": ".js-file-attach-reset-img",
+                                                "resetImg": "./~/Template/img/160x160/img1.jpg",
+                                                "allowTypes": [".png", ".jpeg", ".jpg"]
+                                            }'>
+                                            <span class="avatar-uploader-trigger">
+                                                <i class="bi-pencil avatar-uploader-icon shadow-sm"></i>
+                                        </span>
+                                        </label>
+                                        <button type="button" class="js-file-attach-reset-img btn btn-white">Delete</button>
+                                </div>
+                            </div>
+                            </div>
+                                <div class="row mb-4">
+                                <label for="firstNameLabel" class="col-sm-3 col-form-label form-label">Name <i class="bi-question-circle text-body ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Displayed on public forums, such as Front."></i></label>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="TenantDto.TenantName" id="firstNameLabel" placeholder="First Name" aria-label="Clarice" required data-msg="Please enter your username.">
+                                    <span class="invalid-feedback" asp-validation-for="TenantDto.TenantName">FullName Required</span>
+                            </div>
+                            </div>
+                                <div class="row mb-4">
+                                <label for="emailLabel" class="col-sm-3 col-form-label form-label">Email</label>
+                                    <div class="col-sm-9">
+                                    <input type="email" class="form-control" asp-for="TenantDto.TenantEmail" id="emailLabel" placeholder="clarice@site.com" aria-label="clarice@site.com" required>
+                                    <span class="invalid-feedback">Email Required</span>
+                            </div>
+                            </div>
+                                <div class="row mb-4">
+                                <label for="phoneLabel" class="col-sm-3 col-form-label form-label">Phone</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" asp-for="ApplicationUserDto.PhoneNumber" class="form-control" placeholder="phoneNumber">
+                            </div>
+                            </div>
+
+                            <br />
+                            <!-- ApplicationUser Information -->
+                                <div class="row mb-4">
+                                <label for="UserNameLabel" class="col-sm-3 col-form-label form-label">User Name</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="ApplicationUserDto.UserName" placeholder="test@gmail.com" required>
+                                    <span class="invalid-feedback">UserName Required</span>
+                            </div>
+                            </div>
+                                <div class="row mb-4">
+                                <label for="passwordLabel" class="col-sm-3 col-form-label form-label">Password</label>
+                                    <div class="col-sm-9">
+                                    <div class="d-flex flex-row">
+                                        <div class="justify-content-start w-100">
+                                            <input asp-for="ApplicationUserDto.Password" type="password" class="form-control js-toggle-password  w-100" placeholder="Password" required data-hs-toggle-password-options='{
+                                                "target": "#changePassTarget",
+                                                "defaultClass": "bi-eye-slash",
+                                                "showClass": "bi-eye",
+                                                "classChangeTarget": "#changePassIcon"
+                                            }'>
+                                            <span class="invalid-feedback">Password Required</span>
+                                        </div>
+                                        <div class="justify-content-end">
+                                            <a id="changePassTarget" class="input-group-append input-group-text" href="javascript:void(0);">
+                                                <i id="changePassIcon" class="bi-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="card-footer d-flex justify-content-end align-items-center">
+                            <button type="button" class="btn btn-primary" data-hs-step-form-next-options='{"targetSelector": "#RegisterCompany"}'>
+                                Next <i class="bi-chevron-right"></i>
+                        </button>
+                    </div>
+                    </div>
+
+                    <!--=====================-->
+                    <!--= Registration =-->
+                    <!--=====================-->
+                    <div id="RegisterCompany" class="card card-lg" style="display: none;">
+                        <!-- Body -->
+                            <div class="card-body">
+                                <div class="row mb-4">
+                                <label for="companyNameLabel" class="col-sm-3 col-form-label form-label">Company Name</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="CompanyDto.Name" placeholder="Enter company name" aria-label="Company Name">
+                                    <span class="text-danger" asp-validation-for="CompanyDto.Name"></span>
+                            </div>
+                            </div>
+
+                                <div class="row mb-4">
+                                <label for="companyEmailLabel" class="col-sm-3 col-form-label form-label">Email</label>
+                                    <div class="col-sm-9">
+                                    <input type="email" class="form-control" asp-for="CompanyDto.Email" placeholder="Enter company email" aria-label="Email">
+                                    <span class="text-danger" asp-validation-for="CompanyDto.Email"></span>
+                            </div>
+                            </div>
+
+                                <div class="row mb-4">
+                                <label for="companyWebsiteLabel" class="col-sm-3 col-form-label form-label">Website</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="CompanyDto.Website" placeholder="Enter website URL" aria-label="Website">
+                                    <span class="text-danger" asp-validation-for="CompanyDto.Website"></span>
+                            </div>
+                            </div>
+
+
+                                <div class="row mb-4">
+                                <label for="phoneLabel" class="col-sm-3 col-form-label form-label">Phone</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" asp-for="CompanyDto.Phone" class="form-control" placeholder="phoneNumber">
+                            </div>
+                            </div>
+                                <div class="row mb-4">
+                                <label for="locationLabel" class="col-sm-3 col-form-label form-label">Location</label>
+
+                                    <div class="col-sm-9">
+                                    <div class="tom-select-custom mb-4">
+                                        <select class="js-select form-select" asp-for="CompanyDto.CountryId" asp-items="@(new SelectList(Model.CountryDtoList, "Id", "CountryName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "Select Country"}'>
+                                            <option value="0">--- Select Country ---</option>
+                                        </select>
+                                        <span asp-validation-for="CompanyDto.CountryId" class="invalid-feedback">Country Required</span>
+                                    </div>
+                                        <div class="mb-4">
+                                        <select class="js-select form-select" asp-for="CompanyDto.StateId" asp-items="@(new SelectList(Model.StateProvinceDtoList, "Id", "StateProvinceName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "Select State"}'>
+                                            <option value="">--- Select State ---</option>
+                                        </select>
+                                        <span asp-validation-for="CompanyDto.StateId" class="invalid-feedback">State Required</span>
+                                    </div>
+                                    <select class="js-select form-select" asp-for="CompanyDto.CityId" asp-items="@(new SelectList(Model.CityDtoList, "Id", "CityName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "Select City"}'>
+                                        <option value="">--- Select City ---</option>
+                                    </select>
+                                    <span asp-validation-for="CompanyDto.CityId" class="invalid-feedback">City Required</span>
+                            </div>
+                            </div>
+
+                                <div class="row mb-4">
+                                <label for="companyAddressLabel" class="col-sm-3 col-form-label form-label">Address</label>
+                                    <div class="col-sm-9">
+                                    <input type="text" class="form-control" asp-for="CompanyDto.Address" placeholder="Enter company address" aria-label="Address">
+                                    <span class="text-danger" asp-validation-for="CompanyDto.Address"></span>
+                            </div>
+                        </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="card-footer d-sm-flex align-items-sm-center">
+                            <button type="button" class="btn btn-ghost-secondary mb-2 mb-sm-0" data-hs-step-form-prev-options='{
+                        "targetSelector": "#Tenant"
+                                }'>
+                                <i class="bi-chevron-left"></i> Previous step
+                            </button>
+
+                                <div class="ms-auto">
+                                <button id="addUserFinishBtn" type="button" class="btn btn-primary">Finalize</button>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+
+                <!--=====================-->
+                <!-- Message Body -->
+                <!--=====================-->
+                <div id="successMessageContent" style="display:none;">
+                    <div class="text-center mt-5 pt-5">
+                        <img class="img-fluid mb-3" src="~/Template/svg/illustrations/oc-hi-five.svg" alt="Image Description" data-hs-theme-appearance="default" style="max-width: 15rem;">
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                        }
+                        else
+                            {
+                                <div class="mb-4">
+                                <h2>Please Continue to Update Profile!</h2>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <button class="btn btn-primary" href="users-add-user.html" type="submit">
+                                    <i class="bi-person-plus-fill me-1"></i> Update Profile
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+            </form>
+        </div>
+        </main>
+
+
+        <script src="~/Template/js/demo.js"></script>
+        <script src="~/Template/js/vendor.min.js"></script>
+        <script src="~/Template/js/theme.min.js"></script>
+
+
+    <script>
+        (function () {
+        window.onload = function () {
+            // INITIALIZATION OF STEP FORM
+            // =======================================================
+            new HSStepForm('.js-step-form-validate', {
+                validator: HSBsValidation.init('.js-validate'),
+                    finish($el) {
+                    const $successMessageTempalte = $el.querySelector('.js-success-message').cloneNode(true)
+
+                    $successMessageTempalte.style.display = 'block'
+
+                    $el.style.display = 'none'
+                    $el.parentElement.appendChild($successMessageTempalte)
+            }
+            })
+
+            // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+            // =======================================================
+            new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+            // INITIALIZATION OF FORM SEARCH
+            // =======================================================
+            new HSFormSearch('.js-form-search')
+
+
+            // INITIALIZATION OF BOOTSTRAP DROPDOWN
+            // =======================================================
+            HSBsDropdown.init()
+
+
+            // INITIALIZATION OF FILE ATTACH
+            // =======================================================
+            new HSFileAttach('.js-file-attach')
+
+
+            // INITIALIZATION OF STEP FORM
+            // =======================================================
+            new HSStepForm('.js-step-form-validate', {
+                    finish: () => {
+                    document.getElementById("addUserStepFormProgress").style.display = 'none'
+                    document.getElementById("Tenant").style.display = 'none'
+                    document.getElementById("RegisterCompany").style.display = 'none'
+                    console.log(document.getElementById("addUserStepFormProgress"))
+                    document.getElementById("successMessageContent").style.display = 'block'
+                    scrollToTop('#header');
+                    const formContainer = document.getElementById('formContainer')
+                },
+                onNextStep: function () {
+                scrollToTop()
+                },
+                onPrevStep: function () {
+                scrollToTop()
+            }
+            })
+
+            function scrollToTop(el = '.js-step-form-validate') {
+                el = document.querySelector(el)
+                    window.scrollTo({
+                    top: (el.getBoundingClientRect().top + window.scrollY) - 30,
+                    left: 0,
+                behavior: 'smooth'
+            })
+            }
+
+
+            // INITIALIZATION OF ADD FIELD
+            // =======================================================
+            new HSAddField('.js-add-field', {
+                    addedField: field => {
+                    HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                    HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+            }
+            })
+
+
+            // INITIALIZATION OF SELECT
+            // =======================================================
+            HSCore.components.HSTomSelect.init('.js-select', {
+                    render: {
+                    'option': function (data, escape) {
+                        return data.optionTemplate || `<div>${data.text}</div>>`
+                    },
+                    'item': function (data, escape) {
+                        return data.optionTemplate || `<div>${data.text}</div>>`
+                }
+            }
+            })
+
+
+            // INITIALIZATION OF INPUT MASK
+            // =======================================================
+            HSCore.components.HSMask.init('.js-input-mask')
+
+
+            // INITIALIZATION OF TOGGLE PASSWORD
+            // =======================================================
+            new HSTogglePassword('.js-toggle-password')
+
+            //========================= dorpdown select ===================
+            // Country -> State Change
+            // document.getElementById('CompanyDto_CountryId').addEventListener('change', function () {
+            //     var countryId = this.value;
+            //     var stateSelect = document.getElementById('stateSelect');
+            //     var citySelect = document.getElementById('citySelect');
+                    //     alert(countryId)
+
+            //     if (countryId) {
+            //         // Make an AJAX request to get states by country
+            //         fetch(`/Registration/Registration/GetStatesByCountry?countryId=${countryId}`)
+            //             .then(response => response.json())
+            //             .then(states => {
+            //                 // Clear the state and city dropdowns
+            //                 stateSelect.innerHTML = '<option value="">--- Select State ---</option>';
+            //                 citySelect.innerHTML = '<option value="">--- Select City ---</option>';
+
+            //                 // Populate state dropdown with fetched data
+            //                 states.forEach(state => {
+            //                     var option = document.createElement('option');
+            //                     option.value = state.Id;
+            //                     option.textContent = state.StateProvinceName;
+            //                     stateSelect.appendChild(option);
+            //                 });
+
+            //                 // Reinitialize Tom Select for the updated dropdown
+            //                 HSCore.components.HSTomSelect.init(stateSelect);
+            //             });
+            //     }
+            // });
+
+            // // State -> City Change
+            // document.getElementById('CompanyDto_StateId').addEventListener('change', function () {
+            //     var stateId = this.value;
+            //     var citySelect = document.getElementById('citySelect');
+            //     alert()
+
+            //     if (stateId) {
+            //         // Make an AJAX request to get cities by state
+            //         fetch(`/Registration/Registration/GetCitiesByState?stateId=${stateId}`)
+            //             .then(response => response.json())
+            //             .then(cities => {
+            //                 // Clear the city dropdown
+            //                 citySelect.innerHTML = '<option value="">--- Select City ---</option>';
+
+            //                 // Populate city dropdown with fetched data
+            //                 cities.forEach(city => {
+            //                     var option = document.createElement('option');
+            //                     option.value = city.Id;
+            //                     option.textContent = city.Name;
+            //                     citySelect.appendChild(option);
+            //                 });
+
+            //                 // Reinitialize Tom Select for the updated dropdown
+            //                 HSCore.components.HSTomSelect.init(citySelect);
+            //             });
+            //     }
+        // });
+
+
+
+                }
+            })()
+        </script>
+
+    <script>
+        (function () {
+        // STYLE SWITCHER
+        // =======================================================
+        const $dropdownBtn = document.getElementById('selectThemeDropdown') // Dropdowon trigger
+        const $variants = document.querySelectorAll(`[aria-labelledby="selectThemeDropdown"] [data-icon]`) // All items of the dropdown
+
+        // Function to set active style in the dorpdown menu and set icon for dropdown trigger
+        const setActiveStyle = function () {
+            $variants.forEach($item => {
+                if ($item.getAttribute('data-value') === HSThemeAppearance.getOriginalAppearance()) {
+                    $dropdownBtn.innerHTML = `<i class="${$item.getAttribute('data-icon')}" />`
+                    return $item.classList.add('active')
+                }
+
+                $item.classList.remove('active')
+        })
+        }
+
+        // Add a click event to all items of the dropdown to set the style
+        $variants.forEach(function ($item) {
+            $item.addEventListener('click', function () {
+                HSThemeAppearance.setAppearance($item.getAttribute('data-value'))
+        })
+        })
+
+        // Call the setActiveStyle on load page
+        setActiveStyle()
+
+        // Add event listener on change style to call the setActiveStyle function
+        window.addEventListener('on-hs-appearance-change', function () {
+        setActiveStyle()
+                })
+    })()
+    </script>
+    */
+}

@@ -1,0 +1,337 @@
+﻿@model PIDto
+@{
+
+    ViewData["Title"] = "Invoice Print View";
+    var customer = Model.SupplierDtos?.FirstOrDefault(c => c.Id == Model.SupplierId);
+}
+
+
+<!-- Optional print-specific CSS to hide anything else (if needed) -->
+<style>
+  @@media print {
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+      }
+      #invoiceContainer {
+        overflow: visible !important;
+      }
+      .page-break {
+        page-break-after: always;
+      }
+    }
+</style>
+
+<div class="container">
+    <!-- Invoice Title -->
+    <div class="page-header d-print-none">
+        <div class="row align-items-end">
+            <div class="col-sm">
+                <h1 class="page-header-title">Invoice</h1>
+            </div>
+            <div class="col-sm-auto">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="bi-plus-lg me-1"></i> Create Invoice
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-lg" id="invoiceContainer">
+        <div class="card-body p-5">
+            <!-- Company + Invoice Info -->
+            <div class="row">
+                <div class="col-sm-6">
+                    <!-- YOUR COMPANY LOGO -->
+                    @* <img src="~/Template/svg/logos/logo-short.svg" alt="Logo" style="height:60px;" class="mb-3"> *@
+                    <img src="@Url.Content( Model.CompanyDto.Logo)" alt="Logo" style="height:120px;" class="mb-3">
+                    @* <h5 class="text-primary mb-0">Your Company Name</h5> *@
+                    <h5 class="text-primary mb-0">@Model.CompanyDto.Name</h5>
+                    <h5 class="text-primary mb-0">@Model.CompanyDto.Address</h5>
+                    @* <p class="mb-2 small text-secondary"> 45 Roker Terrace, Latheronwheel, KW5 8NW,<br /> London, United Kingdom</p> *@
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <h4 class="fw-bold">Invoice #@Model.PICode</h4>
+                    <p class="mb-0">Record ID: <strong>@Model.Id</strong></p>
+                    <p class="mb-0">Date: <strong>@Model.PIDate.ToString("dd/MM/yyyy")</strong></p>
+                </div>
+            </div>
+            <hr class="my-3" />
+
+            <!-- Bill To (Customer Info) -->
+            <div class="row mb-4">
+                <div class="col-sm-6">
+                    <h6 class="fw-bold">Bill To:</h6>
+                    <h5 class="mb-0">@Model.SupplierName</h5>
+                    @if (customer != null)
+                    {
+                        <div class="small text-secondary">
+                            <div>Phone: @customer.PhoneNo</div>
+                            <div>Email: @customer.Email</div>
+                            <div>
+                                Address:
+                                @customer.CityName,
+                                @customer.StateName,
+                                @customer.CountryName
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="small text-secondary">
+                            280 Suzanne Throughway, Breannabury, OR 45801, United States
+                        </div>
+                    }
+                </div>
+                <div class="col-sm-6 text-sm-end">
+                    <div class="small">
+                        <div><strong>Subtotal:</strong> @Model.PISubTotal</div>
+                        <div><strong>Discount:</strong> @Model.PIDiscount</div>
+                        <div><strong>Total (Before VAT):</strong> @Model.PITotal</div>
+                        <div><strong>Total (After VAT):</strong> @Model.PITotalAfterVAT</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ITEM TABLE -->
+            <div class="table-responsive mb-4">
+                <table class="table table-striped table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:3%">#</th>
+                            <th>Product</th>
+                            <th class="text-center" style="width:10%">Qty</th>
+                            <th class="text-end" style="width:15%">Price</th>
+                            <th class="text-end" style="width:15%">Line Total</th>
+                            <th class="text-end" style="width:15%">Total After VAT</th>
+                            <th class="text-center" style="width:12%">Taxes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.PIDtlDtos != null && Model.PIDtlDtos.Any())
+                        {
+                            int index = 1;
+                            foreach (var detail in Model.PIDtlDtos)
+                            {
+                                var itemTaxes = Model.PIDtlTaxDtos
+                                    .Where(t => t.PIDtlId == detail.Id)
+                                    .ToList();
+
+                                <tr>
+                                    <td>@index</td>
+                                    <td>@detail.ProductName</td>
+                                    <td class="text-center">@detail.PIDtlQty</td>
+                                    <td class="text-end">@detail.PIDtlPrice</td>
+                                    <td class="text-end">@detail.PIDtlTotal</td>
+                                    <td class="text-end">@detail.PIDtlTotalAfterVAT</td>
+                                    <td class="text-center">
+                                        @if (itemTaxes.Any())
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary"
+                                                    type="button"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="1"
+                                                    aria-expanded="true"
+                                                    aria-controls="1">
+                                                View Tax
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">No Tax</small>
+                                        }
+                                    </td>
+                                </tr>
+
+                                @if (itemTaxes.Any())
+                                {
+                                    <tr class="bg-light" id="1">
+                                        <td colspan="7">
+                                            <div class="p-2">
+                                                <h6 class="mb-2">Tax Details:</h6>
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Tax Name</th>
+                                                            <th class="text-end">Tax Amount</th>
+                                                            <th class="text-end">After Tax Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var t in itemTaxes)
+                                                        {
+                                                            var taxMaster = Model.TaxMasterDtos?
+                                                                .FirstOrDefault(x => x.Id == t.TaxId);
+
+                                                            <tr>
+                                                                <td>
+                                                                    @taxMaster?.TaxName
+                                                                    <small class="text-muted">
+                                                                        (@taxMaster?.TaxValue)
+                                                                        @if (taxMaster?.IsPercentage == true)
+                                                                        {
+                                                                            <text>%</text>
+                                                                        }
+                                                                    </small>
+                                                                </td>
+                                                                <td class="text-end">@t.TaxAmount</td>
+                                                                <td class="text-end">@t.AfterTaxAmount</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No items found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- GRAND TAX BREAKDOWN -->
+            @if (Model.PIVATBreakdownDtos != null && Model.PIVATBreakdownDtos.Any())
+            {
+                <div class="mb-4">
+                    <h6 class="fw-bold">Overall Tax Breakdown</h6>
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tax Name</th>
+                                <th class="text-end">Tax Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var vat in Model.PIVATBreakdownDtos)
+                            {
+                                <tr>
+                                    <td>@vat.TaxName</td>
+                                    <td class="text-end">@vat.TaxAmount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+            <!-- FINAL TOTALS -->
+            <div class="row mb-4">
+                <div class="col-md-6 offset-md-6">
+                    <div class="table-responsive">
+                        <table class="table table-borderless table-sm text-end">
+                            <tbody>
+                                <tr>
+                                    <td style="width:60%;" class="fw-bold">Subtotal:</td>
+                                    <td>@Model.PISubTotal</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Discount:</td>
+                                    <td>@Model.PIDiscount</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Total (Before VAT):</td>
+                                    <td>@Model.PITotal</td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td class="fw-bold">Grand Total (After VAT):</td>
+                                    <td class="fw-bold">@Model.PITotalAfterVAT</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- THANK YOU NOTE -->
+            <div class="mb-3">
+                <h5 class="fw-bold">Thank you!</h5>
+                <p class="small mb-0">
+                    If you have any questions concerning this invoice, please use the following contact information:
+                </p>
+                <p class="small">
+                    Phone: +00 123 456 7890<br />
+                    Email: support@yourcompany.com
+                </p>
+            </div>
+
+            <!-- FOOTER NOTE -->
+            <div class="text-muted small">
+                &copy; @DateTime.Now.Year Your Company. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTION BUTTONS (PDF & PRINT) btn btn-outline-secondary -->
+    <div class="d-flex justify-content-end gap-3 d-print-none mt-3">
+        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+        <button id="downloadPdfBtn" class="btn btn-primary">
+            <i class="bi bi-printer me-1"></i> Download PDF
+        </button>
+    </div>
+</div>
+
+
+@section scripts {
+    <!-- Include html2pdf.js library from CDN (without integrity attribute if causing issues) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+    <script>
+        function printPage() {
+            setTimeout(function () {
+                window.focus();
+                window.print();
+            },100);
+
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Store the invoice id from Razor in a JS variable
+            const invoiceId = '@Model.Id';
+
+            const downloadBtn = document.getElementById('downloadPdfBtn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    // Select the invoice container
+                    const element = document.getElementById('invoiceContainer');
+                    if (!element) {
+                        console.error("Invoice container not found!");
+                        return;
+                    }
+
+                    // Options for html2pdf for A4 size with adjusted margins
+                    const opt = {
+                        margin: [0.25, 0.25, 0.25, 0.25], // top, right, bottom, left margins in inches
+                        filename: `Invoice_${invoiceId}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: {
+                            scale: 2,
+                            scrollY: 0,        // Force html2canvas to start at the top of the container
+                            useCORS: true      // Enable local file access if needed
+                        },
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    // Generate and download the PDF
+                    html2pdf().set(opt).from(element).save()
+                        .then(() => {
+                            console.log("PDF generated successfully!");
+                        })
+                        .catch((err) => {
+                            console.error("PDF generation error:", err);
+                        });
+                });
+            }
+        });
+    </script>
+}
+

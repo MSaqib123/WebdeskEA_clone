@@ -1,0 +1,358 @@
+﻿@model ProductDto
+@{
+    ViewData["Title"] = "Product";
+}
+
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+    var coaIncomeOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+       Model.COAIncomeDtos.Select(coa => new { value = coa.Id, text = coa.AccountName })
+    );
+
+    var coaExpenseOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+       Model.COAExpenseDtos.Select(coa => new { value = coa.Id, text = coa.AccountName })
+    );
+}
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    <div class="row">
+                        <!-- Product Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ProductCode">Product Code</label>
+                                <input type="hidden" asp-for="ProductCode" />
+                                <input type="text" class="form-control" asp-for="ProductCode" disabled />
+                                <span asp-validation-for="ProductCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Product Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ProductName">Name</label>
+                                <input type="text" asp-for="ProductName" class="form-control" />
+                                <span asp-validation-for="ProductName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Brand ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="BrandId">Brand</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select"
+                                            asp-for="BrandId"
+                                            asp-items="@(new SelectList(Model.BrandDtos, "Id", "BrandName"))"
+                                            data-hs-tom-select-options='{
+      "persist": false,
+      "create": true,
+      "placeholder": "Create custom tag..."
+    }'>
+                                        <option value="0">--- Select Brand ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="BrandId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <!-- Categoyr -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CategoryId">Select Category</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CategoryId" asp-items="@(new SelectList(Model.CategoryDtos, "Id", "CategoryName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select Category ---","create": true}'>
+                                        <option value="0">-- Select Category --</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- Sale Tax ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="TaxId">Select Tax</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="TaxId" asp-items="@(new SelectList(Model.TaxMasterDtos, "Id", "TaxName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select Tax ---","create": true}'>
+                                        <option value="0">--- Select Tax ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="TaxId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <!-- Product SKU -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ProductSKU">SKU</label>
+                                <input type="text" asp-for="ProductSKU" class="form-control" />
+                                <span asp-validation-for="ProductSKU" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Product Description -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ProductDescription">Description</label>
+                                <textarea asp-for="ProductDescription" class="form-control"></textarea>
+                                <span asp-validation-for="ProductDescription" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Product Price -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ProductPrice">Price</label>
+                                <input type="number" asp-for="ProductPrice" class="form-control" />
+                                <span asp-validation-for="ProductPrice" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Is Product Sale -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Sale</label><br />
+                                <div class="form-check form-switch mt-3">
+                                    <input type="checkbox" asp-for="IsProductSale" class="form-check-input" role="switch" />
+                                </div>
+                                <span asp-validation-for="IsProductSale" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Is Product Buy -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Buy</label><br />
+                                <div class="form-check form-switch mt-3">
+                                    <input type="checkbox" asp-for="IsProductBuy" class="form-check-input" role="switch" />
+                                </div>
+                                <span asp-validation-for="IsProductBuy" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <input type="file" id="ImageForSave" hidden asp-for="ImageForSave" />
+                            </div>
+                        </div>
+
+
+                        <!-- Add Form -->
+                        @{#region OK}
+                        <div class="js-add-field row mb-4" id="IncomeAccount">
+                            <div class="col-sm-4">
+                                <label for="Income" class="col-sm-4 col-form-label form-label">Income Account </label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select"
+                                            name="@nameof(Model.SelectedIncomeCOAs)"
+                                            id="@nameof(Model.SelectedIncomeCOAs)"
+                                            asp-items="@(new SelectList(Model.COAIncomeDtos, "Id", "AccountName"))"
+                                            autocomplete="off"
+                                            data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <div id="addCOAIncomeContainer"></div>
+                                <a class="js-create-field form-link" id="CreateCOAIncomeButton" href="javascript:;">
+                                    <i class="bi-plus"></i> Add Income Account
+                                </a>
+                            </div>
+                        </div>
+
+
+                        <div class="js-add-field row mb-4" id="ExpenseAccount">
+                            <div class="col-sm-4">
+                                <label for="Expense" class="col-sm-4 col-form-label form-label">Expense Account </label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select"
+                                            name="@nameof(Model.SelectedExpenseCOAs)"
+                                            id="@nameof(Model.SelectedExpenseCOAs)"
+                                            asp-items="@(new SelectList(Model.COAExpenseDtos, "Id", "AccountName"))"
+                                            autocomplete="off"
+                                            data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+
+                                <div id="addCOAExpenseContainer"></div>
+                                <a class="js-create-field form-link" id="CreateCOAExpenseButton" href="javascript:;">
+                                    <i class="bi-plus"></i> Add Expense Account
+                                </a>
+                            </div>
+
+
+                           
+                        </div>
+
+                        @{#endregion}
+                    </div>
+
+                    
+                  
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+    <script>
+        // Get toggle elements
+        const saleToggle = document.querySelector('#@nameof(Model.IsProductSale)');
+        const buyToggle = document.querySelector('#@nameof(Model.IsProductBuy)');
+
+        // Get account sections
+        const incomeAccount = document.getElementById('IncomeAccount');
+        const expenseAccount = document.getElementById('ExpenseAccount');
+
+        // Function to toggle visibility of an account section
+        const toggleAccountVisibility = (toggleElement, accountElement) => {
+            if (toggleElement.checked) {
+                accountElement.style.display = 'block'; // Show the account section
+            } else {
+                accountElement.style.display = 'none'; // Hide the account section
+            }
+        };
+
+        // On page load, initialize visibility based on toggle states
+        toggleAccountVisibility(saleToggle, incomeAccount);
+        toggleAccountVisibility(buyToggle, expenseAccount);
+
+        // Add event listeners to toggle switches
+        saleToggle.addEventListener('change', () => {
+            toggleAccountVisibility(saleToggle, incomeAccount);
+        });
+
+        buyToggle.addEventListener('change', () => {
+            toggleAccountVisibility(buyToggle, expenseAccount);
+        });
+
+    </script>
+    <!-- Include this script to initialize the dynamic dropdown functionality -->
+    <script type="module">
+        import { MultiDropdownRendering } from '/Frontentjs/Dropdowns/MultiDropdownRendring.js';
+        const COAIncomeDtos = @Html.Raw(coaIncomeOptions);
+        const COAExpenseDtos = @Html.Raw(coaExpenseOptions);
+        const Income = new MultiDropdownRendering('#addCOAIncomeContainer', '#CreateCOAIncomeButton', '@nameof(Model.SelectedIncomeCOAs)', COAIncomeDtos);
+        const Expense = new MultiDropdownRendering('#addCOAExpenseContainer', '#CreateCOAExpenseButton', '@nameof(Model.SelectedExpenseCOAs)', COAExpenseDtos);
+
+        import { TomSelectHandler } from '/Frontentjs/dynamicComponents/dynamicDropdownAddValue.js';
+        const brandHandler1 = new TomSelectHandler('BrandId','_brand', 'BrandDto', 'Id', 'BrandName');
+
+    </script>
+
+
+    <script type="module">
+        import { ProBaseUploader } from '/Frontentjs/dynamicComponents/dynamicFileUploader.js';
+
+        const uploader = new ProBaseUploader({
+            labelName: 'No Image Selected',
+            linkName: 'Upload Image',
+            inputId: 'ImageForSave',
+            actionType: 'create',
+            isImage: true,
+            isMultiImage: false, // Set true if multiple images
+            imageTypes: 'png,jpg,jpeg',
+            isFiles: false,
+            isMultiFile: false,
+            //fileTypes: 'doc,docx,pdf,txt'
+
+        });
+    </script>
+
+   
+}

@@ -1,0 +1,91 @@
+﻿@model CompanyBusinessCategoryDto
+@{
+    ViewData["Title"] = "CompanyBusinessCatgorory";
+}
+<div class="page-header">
+    <div class="page-title">
+        <h4>@(ViewBag.NameOfForm)</h4>
+        <h6>Add/Update @(ViewBag.NameOfForm)</h6>
+    </div>
+    <div class="page-btn">
+        <a class="btn btn-added" asp-action="Index">Cancel</a>
+    </div>
+</div>
+<div class="card" style="padding-bottom:20px">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-12 col-sm-6 col-12">
+                <div class="form-group">
+                    <h3>@Model.CompanyName</h3>
+                </div>
+            </div>
+            <div class="col-lg-12 col-sm-6 col-12">
+                <div class="form-group">
+                    <label>BusinessCategory Name</label>
+                    <div class="row">
+                        <div class="col-lg-5 col-sm-10 col-10">
+                            <input type="hidden" route-id="" id="hiddenId">
+                            <input type="hidden" id-"CompanyId" asp-for="CompanyId" >
+                            <input type="hidden" id="CompanyName" asp-for="CompanyName" >
+                            <input type="text" id="Name">
+                        </div>
+                        <div class="col-lg-4 col-sm-2 col-2 ps-0 d-flex justify-content-start align-items-center">
+                            <div class="add-icon me-2">
+                                <a class="btn-added" id="addUpdateBtn"><img src="~/Template/img/icons/plus1.svg" alt="img"></a>
+                            </div>
+                            <div class="add-icon me-2">
+                                <a class="btn-update d-none" id="updateBtn">
+                                    <i class="fas fa-sync-alt" style="color:white"></i>
+                                </a>
+                            </div>
+                            <div class="add-icon">
+                                <a class="btn-reset d-none" id="resetBtn">
+                                    <i class="fas fa-redo" style="color:white"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="productdetails" style="margin-top:15px">
+                <div class="table-responsive">
+                    <table class="table datanew">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Business Category</th>
+                                <th>Company</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.BusinessCategories)
+                            {
+                                <tr>
+                                    <td>@item.Id</td>
+                                    <td>@item.Name</td>
+                                    <td>@item.CompanyName</td>
+                                    <td>
+                                        <a class="deleteBtn" data-id="@item.Id"><img src="~/Template/img/icons/delete.svg" alt="svg"></a>
+                                    </td>
+                                </tr>
+                            }
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script type="module" src="~/frontentjs/companysite/companybusinesscategory.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.select').select2();
+        });
+    </script>
+}

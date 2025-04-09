@@ -1,0 +1,1406 @@
+﻿@model COADto
+
+
+<div class="modal fade" id="COAModal" tabindex="-1" aria-labelledby="COAModalLabel" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable" role="document" id="COAModalContent">
+    </div>
+</div>
+
+
+<div class="modal fade" id="COACategoryModal" tabindex="-1" aria-labelledby="COACategoryModalLabel" aria-hidden="true" role="dialog">
+    <div class="modal-dialog modal-dialog-scrollable" role="document" id="COACategoryModalContent">
+    </div>
+</div>
+
+@{
+    ViewData["Title"] = "Chart Of Account";
+    var coatypeList = Model.CoatypeDtoList.ToList();
+}
+
+<style>
+    .coa-tree {
+        list-style-type: none;
+        padding-left: 20px;
+        margin: 0;
+        font-size: 16px;
+    }
+    .coa-tree li {
+        position: relative;
+        padding: 10px 10px 10px 40px;
+        margin-bottom: 5px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        transition: background 0.3s, border-color 0.3s;
+    }
+    .coa-tree li:hover {
+        background: #f1f1f1;
+        border-color: #bbb;
+    }
+    .coa-tree li::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 15px;
+        width: 10px;
+        height: 2px;
+        background: var(--bs-blue);
+    }
+    .coa-tree li::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 20px;
+        width: 2px;
+        height: 100%;
+        background: var(--bs-blue);
+    }
+    .coa-tree li:last-child::after {
+        height: 20px;
+    }
+    .coa-node-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        position: relative;
+        width: 100%;
+    }
+    .coa-node-header .coa-name {
+        flex-grow: 1;
+        user-select: none;
+    }
+    .modal-header h5 {
+        margin: 0;
+    }
+
+    /*---- dd ----*/
+    .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+</style>
+
+<!-- Wizard UI -->
+<div class="card">
+    <div class="card-body">
+        <form class="js-step-form"
+              data-hs-step-form-options='{
+                    "progressSelector": "#basicStepFormProgress",
+                    "stepsSelector": "#basicStepFormContent",
+                    "endSelector": "#createProjectFinishBtn"
+                  }'>
+
+            <!-- Step Indicators -->
+            <ul id="basicStepFormProgress" class="js-step-progress step step-sm step-icon-sm step-inline step-item-between mb-7">
+                @for (int i = 0; i < coatypeList.Count; i++)
+                {
+                    var type = coatypeList[i];
+                    <li class="step-item @(i == 0 ? "active" : "")">
+                        <a class="step-content-wrapper" href="javascript:;"
+                           data-hs-step-form-next-options='{
+                                       "targetSelector": "#coaTypeStep_@type.Id"
+                                    }'>
+                            <span class="step-icon step-icon-soft-dark">@((i + 1).ToString())</span>
+                            <div class="step-content">
+                                <span class="step-title">@type.CoatypeName</span>
+                            </div>
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <!-- Step Content -->
+            <div id="basicStepFormContent">
+                @for (int i = 0; i < coatypeList.Count; i++)
+                {
+                    var type = coatypeList[i];
+                    <div id="coaTypeStep_@type.Id" style="@(i == 0 ? "" : "display:none;")">
+                        <h4>@type.CoatypeName Accounts</h4>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="mb-0">Hierarchical list of @type.CoatypeName accounts</p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-secondary"
+                                        onclick="openCreateCategoryDialog(@type.Id)">
+                                    + Add Category
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="tableContainer-@type.Id">
+                            <p>Loading...</p>
+                        </div>
+                        
+                        <!-- Step Navigation -->
+                        <div class="d-flex align-items-center mt-3">
+                            @if (i > 0)
+                            {
+                                <button type="button" class="btn btn-ghost-secondary me-2"
+                                        data-hs-step-form-prev-options='{
+                                                      "targetSelector": "#coaTypeStep_@coatypeList[i - 1].Id"
+                                                    }'>
+                                    <i class="bi-chevron-left small"></i> Previous step
+                                </button>
+                            }
+
+                            @if (i < coatypeList.Count - 1)
+                            {
+                                <div class="ms-auto">
+                                    <button type="button" class="btn btn-ghost-Next btn-primary"
+                                            data-hs-step-form-next-options='{
+                                                                            "targetSelector": "#coaTypeStep_@coatypeList[i + 1].Id"
+                                                                        }'>
+                                        Next <i class="bi-chevron-right small"></i>
+                                    </button>
+                                </div>
+                            }
+                            @* else
+                            {
+                                <div class="ms-auto">
+                                    <button id="createProjectFinishBtn" type="button" class="btn btn-primary" onclick="finalize()">Finish</button>
+                                </div>
+                            } *@
+                        </div>
+
+                        <script>
+                            (function () {
+                                const tenantId = @Model.TenantId;
+                                const tenantCompanyId = @Model.TenantCompanyId;
+                                const coatypeId = @type.Id;
+
+                                // Load tree initially using fetch
+                                fetch('@Url.Action("LoadTree", "ChartOfAccount", new { area = "Accounts" })'
+                                      + '?coatypeId=' + coatypeId
+                                      + '&tenantId=' + tenantId
+                                      + '&tenantCompanyId=' + tenantCompanyId)
+                                    .then(response => {
+                                        if (!response.ok) throw new Error('Network response was not ok');
+                                        return response.text();
+                                    })
+                                    .then(html => {
+                                        document.getElementById('tableContainer-' + coatypeId).innerHTML = html;
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading tree:', error);
+                                        document.getElementById('tableContainer-' + coatypeId).innerHTML = '<p>Error loading data.</p>';
+                                    });
+                            })();
+                        </script>
+                    </div>
+                }
+            </div>
+
+            <!-- Success Message -->
+            <div id="basicStepSuccessMessage" class="js-success-message" style="display:none;">
+                <div class="text-center">
+                    <img class="img-fluid mb-3" src="../assets/svg/illustrations/oc-hi-five.svg" alt="Image Description" style="max-width: 15rem;">
+                    <div class="mb-4">
+                        <h2>Successful!</h2>
+                        <p>All changes have been successfully saved.</p>
+                    </div>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-white" onclick="location.reload()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+        <!-- End Step Form -->
+    </div>
+
+</div>
+
+
+
+@section Scripts {
+    <script>
+        const tenantId = @Model.TenantId;
+        const tenantCompanyId = @Model.TenantCompanyId;
+
+        /************************************************************
+         * openCreateModal: supports parentAccountId
+         * coatypeId       = which type
+         * coaCategoryId   = if we want top-level under a category 
+         * parentAccountId = if we want a child of an existing COA
+         ************************************************************/
+        function openCreateModal(coatypeId, coaCategoryId, parentAccountId) {
+            // Build the query params
+            let url = '@Url.Action("CreateOrUpdateCOA", "ChartOfAccount", new { area = "Accounts" })'
+                      + `?coatypeId=${coatypeId}`
+                      + `&tenantId=${tenantId}`
+                      + `&tenantCompanyId=${tenantCompanyId}`;
+
+            if(coaCategoryId) {
+                url += `&coaCategoryId=${coaCategoryId}`;
+            }
+            if(parentAccountId) {
+                url += `&parentAccountId=${parentAccountId}`;
+            }
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('COAModalContent').innerHTML = html;
+                    const coaModal = new bootstrap.Modal(document.getElementById('COAModal'));
+                    coaModal.show();
+                })
+                .catch(error => {
+                    console.error('Error loading modal:', error);
+                    alert('Failed to load modal.');
+                });
+        }
+
+        function openCreateCategoryDialog(coatypeId) {
+            let url = '@Url.Action("CreateOrUpdateCOACategory", "ChartOfAccount", new { area = "Accounts" })'
+                      + `?coatypeId=${coatypeId}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('COACategoryModalContent').innerHTML = html;
+                    const COACategoryModal = new bootstrap.Modal(document.getElementById('COACategoryModal'));
+                    COACategoryModal.show();
+                })
+                .catch(error => {
+                    console.error('Error loading modal:', error);
+                    alert('Failed to load modal.');
+                });
+        }
+
+        function openEditModal(coaId, coatypeId) {
+            let url = '@Url.Action("CreateOrUpdateCOA", "ChartOfAccount", new { area = "Accounts" })'
+                      + `?id=${coaId}`
+                      + `&coatypeId=${coatypeId}`
+                      + `&tenantId=${tenantId}`
+                      + `&tenantCompanyId=${tenantCompanyId}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    document.getElementById('COAModalContent').innerHTML = html;
+                    const coaModal = new bootstrap.Modal(document.getElementById('COAModal'));
+                    coaModal.show();
+                })
+                .catch(error => {
+                    console.error('Error loading modal:', error);
+                    alert('Failed to load modal.');
+                });
+        }
+
+        function deleteCOA(coaId, coatypeId) {
+            if (!confirm("Are you sure you want to delete this account?")) return;
+
+            const url = '@Url.Action("DeleteCOA", "ChartOfAccount", new { area = "Accounts" })';
+            const body = {
+                Id: coaId,
+                CoatypeId: coatypeId,
+                TenantId: tenantId,
+                TenantCompanyId: tenantCompanyId
+            };
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify(body)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.text();
+            })
+            .then(html => {
+                // The server returns the new partial to replace the container
+                // So we replace the correct container by ID
+                document.getElementById(`tableContainer-${coatypeId}`).innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error deleting COA:', error);
+                alert('Failed to delete COA.');
+            });
+        }
+
+        /**
+         * finalize: ends the wizard
+         */
+        function finalize() {
+            const url = '@Url.Action("Finalize", "ChartOfAccount", new { area = "Accounts" })';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify({ TenantId: tenantId, TenantCompanyId: tenantCompanyId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('basicStepFormContent').style.display = 'none';
+                    document.getElementById('basicStepFormProgress').style.display = 'none';
+                    document.getElementById('basicStepSuccessMessage').style.display = 'block';
+                } else {
+                    alert('Failed to finalize changes.');
+                }
+            })
+            .catch(error => {
+                console.error('Error finalizing changes:', error);
+                alert('Failed to finalize changes.');
+            });
+        }
+
+        /**
+         * Handle form submission inside the modal (Create/Update COA)
+         * We'll attach this whenever the modal is shown.
+         */
+        function handleFormSubmission() {
+            const coaForm = document.getElementById('COAForm');
+            if (!coaForm) return;
+
+            coaForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(coaForm);
+                const formJson = {};
+                formData.forEach((value, key) => {
+                    formJson[key] = value;
+                });
+                // Convert booleans or numbers if needed
+                formJson.Id = parseInt(formJson.Id || 0);
+                formJson.Transable = (formJson.Transable === 'on');
+
+                const formToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const url = coaForm.action; // e.g. your CreateOrUpdateCOA POST
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': formToken
+                    },
+                    body: JSON.stringify(formJson)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    const coatypeId = formJson.CoatypeId;
+                    // Overwrite the table container for the correct type
+                    document.getElementById(`tableContainer-${coatypeId}`).innerHTML = html;
+
+                    // Hide modal
+                    const coaModalEl = document.getElementById('COAModal');
+                    const coaModal = bootstrap.Modal.getInstance(coaModalEl);
+                    coaModal.hide();
+                })
+                .catch(error => {
+                    console.error('Error submitting form:', error);
+                    alert('Failed to save COA.');
+                });
+            });
+        }
+
+        function handleCategoryFormSubmission() {
+            const COACategoryForm = document.getElementById('COACategoryForm');
+            if (!COACategoryForm) return;
+
+            COACategoryForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(COACategoryForm);
+                const formJson = {};
+                formData.forEach((value, key) => {
+                    formJson[key] = value;
+                });
+                formJson.Id = parseInt(formJson.Id || 0);
+                const formToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const url = COACategoryForm.action;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': formToken
+                    },
+                    body: JSON.stringify(formJson)
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(html => {
+                        const coatypeId = formJson.CoaTypeId;
+                        console.log(coatypeId)
+                        // const coaCategoryModalEl = document.getElementById('COACategoryModal');
+                        // const coaCategoryModal = bootstrap.Modal.getInstance(coaCategoryModalEl);
+                        // coaCategoryModal.hide();
+
+
+                        document.getElementById(`tableContainer-${coatypeId}`).innerHTML = html;
+                        // Hide modal
+                        const coaCategoryModalEl = document.getElementById('COACategoryModal');
+                        const coaCategoryModal = bootstrap.Modal.getInstance(coaCategoryModalEl);
+                        coaCategoryModal.hide();
+                    })
+                    .catch(error => {
+                        console.error('Error submitting form:', error);
+                        alert('Failed to save COA.');
+                    });
+            });
+        }
+
+        /**
+         * getAntiForgeryToken: read from meta if you're using that approach
+         */
+        function getAntiForgeryToken() {
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            return token || '';
+        }
+
+        /**
+         * Initialize once DOM is ready
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            const coaModal = document.getElementById('COAModal');
+            const coaCategoryModal = document.getElementById('COACategoryModal');
+            if (coaModal) {
+                // Each time the modal is fully shown, attach the form submission
+                // (We use a 'shown.bs.modal' event so that the partial is fully injected first.)
+                coaModal.addEventListener('shown.bs.modal', handleFormSubmission);
+            }
+            if (coaCategoryModal) {
+                coaCategoryModal.addEventListener('shown.bs.modal', handleCategoryFormSubmission);
+            }
+            initializeStepNavigation();
+        });
+
+        /**
+         * Step navigation logic
+         */
+        function initializeStepNavigation() {
+            const stepWrappers = document.querySelectorAll('.step-content-wrapper');
+            stepWrappers.forEach(wrapper => {
+                wrapper.addEventListener('click', () => {
+                    
+                    const targetOptions = JSON.parse(wrapper.getAttribute('data-hs-step-form-next-options'));
+                    const targetSelector = targetOptions.targetSelector;
+
+                    // Activate the clicked step
+                    document.querySelectorAll('.step-item').forEach(item => item.classList.remove('active'));
+                    wrapper.closest('.step-item').classList.add('active');
+
+                    // Show the target step content and hide others
+                    document.querySelectorAll('#basicStepFormContent > div')
+                        .forEach(content => content.style.display = 'none');
+
+                    const targetStep = document.querySelector(targetSelector);
+                    if (targetStep) targetStep.style.display = 'block';
+                });
+            });
+
+            // Previous button logic
+            const prevButtons = document.querySelectorAll('.btn-ghost-secondary');
+            prevButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetOptions = JSON.parse(button.getAttribute('data-hs-step-form-prev-options'));
+                    const targetSelector = targetOptions.targetSelector;
+
+                    // Activate the target step
+                    document.querySelectorAll('.step-item').forEach(item => item.classList.remove('active'));
+
+                    const targetStepElement = document.querySelector(targetSelector);
+                    if (targetStepElement) {
+                        // naive approach to find the step item with same heading
+                        const targetTitle = targetStepElement.querySelector('h4')?.textContent.trim().split(' ')[0];
+                        const targetStepItem = Array.from(document.querySelectorAll('.step-item')).find(item => {
+                            const stepTitle = item.querySelector('.step-title')?.textContent.trim();
+                            return stepTitle === targetTitle;
+                        });
+                        if (targetStepItem) targetStepItem.classList.add('active');
+                    }
+
+                    // Show the target step content and hide others
+                    document.querySelectorAll('#basicStepFormContent > div')
+                        .forEach(content => content.style.display = 'none');
+                    if (targetStepElement) targetStepElement.style.display = 'block';
+                });
+            });
+
+
+
+            // Next button logic
+            const nextButtons = document.querySelectorAll('.btn-ghost-Next');
+            nextButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetOptions = JSON.parse(button.getAttribute('data-hs-step-form-next-options'));
+                    const targetSelector = targetOptions.targetSelector;
+
+                    // Activate the target step
+                    document.querySelectorAll('.step-item').forEach(item => item.classList.remove('active'));
+
+                    const targetStepElement = document.querySelector(targetSelector);
+                    if (targetStepElement) {
+                        // naive approach to find the step item with same heading
+                        const targetTitle = targetStepElement.querySelector('h4')?.textContent.trim().split(' ')[0];
+                        const targetStepItem = Array.from(document.querySelectorAll('.step-item')).find(item => {
+                            const stepTitle = item.querySelector('.step-title')?.textContent.trim();
+                            return stepTitle === targetTitle;
+                        });
+                        if (targetStepItem) targetStepItem.classList.add('active');
+                    }
+
+                    // Show the target step content and hide others
+                    document.querySelectorAll('#basicStepFormContent > div')
+                        .forEach(content => content.style.display = 'none');
+                    if (targetStepElement) targetStepElement.style.display = 'block';
+                });
+            });
+        }
+    </script>
+}
+
+
+
+
+
+@* 
+
+                 @model COADto
+
+@{
+    // Convert CoatypeDtoList to a List for indexing
+    var coatypeList = Model.CoatypeDtoList.ToList();
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+
+<style>
+    /* Wizard step styles */
+    .step {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .step-item {
+        display: inline-block;
+        position: relative;
+        margin-right: 1rem;
+    }
+
+        .step-item.active .step-icon-soft-dark {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+    .step-icon-soft-dark {
+        display: inline-block;
+        width: 2em;
+        height: 2em;
+        line-height: 2em;
+        text-align: center;
+        border-radius: 50%;
+        background: #eee;
+        color: #333;
+        margin-bottom: 0.25em;
+    }
+
+    .step-title {
+        font-size: 0.9em;
+    }
+
+    /* Tree styles */
+    .coa-tree {
+        list-style-type: none;
+        padding-left: 20px;
+        margin: 0;
+        font-size: 16px;
+    }
+
+        .coa-tree li {
+            position: relative;
+            padding: 10px 10px 10px 40px;
+            margin-bottom: 5px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+            .coa-tree li:hover {
+                background: #f1f1f1;
+                border-color: #bbb;
+            }
+
+            .coa-tree li::before {
+                content: '';
+                position: absolute;
+                top: 20px;
+                left: 15px;
+                width: 10px;
+                height: 2px;
+                background: var(--bs-blue, #0d6efd);
+            }
+
+            .coa-tree li::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 20px;
+                width: 2px;
+                height: 100%;
+                background: var(--bs-blue, #0d6efd);
+            }
+
+            .coa-tree li:last-child::after {
+                height: 20px;
+            }
+
+    .coa-node-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+        .coa-node-header .coa-name {
+            flex-grow: 1;
+            user-select: none;
+            font-weight: 500;
+        }
+
+    .modal-header h5 {
+        margin: 0;
+    }
+
+    /* Expand/Collapse icons or text buttons */
+    .coa-toggle-btn {
+        cursor: pointer;
+        color: #0d6efd;
+        margin-right: 6px;
+    }
+</style>
+
+<div class="card">
+    <div class="card-body">
+        <form class="js-step-form" data-hs-step-form-options='{
+                    "progressSelector": "#basicStepFormProgress",
+                    "stepsSelector": "#basicStepFormContent",
+                    "endSelector": "#createProjectFinishBtn"
+                  }'>
+            <!-- Step Indicators -->
+            <ul id="basicStepFormProgress" class="js-step-progress step step-sm step-icon-sm step-inline step-item-between mb-7">
+                @for (int i = 0; i < coatypeList.Count; i++)
+                {
+                    var type = coatypeList[i];
+                    <li class="step-item @(i == 0 ? "active" : "")">
+                        <a class="step-content-wrapper" href="javascript:;"
+                           data-hs-step-form-next-options='{
+                                           "targetSelector": "#coaTypeStep_@type.Id"
+                                        }'>
+                            <span class="step-icon step-icon-soft-dark">@((i + 1).ToString())</span>
+                            <div class="step-content">
+                                <span class="step-title">@type.CoatypeName</span>
+                            </div>
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <!-- Step Content -->
+            <div id="basicStepFormContent">
+                @for (int i = 0; i < coatypeList.Count; i++)
+                {
+                    var type = coatypeList[i];
+                    <div id="coaTypeStep_@type.Id" style="@(i == 0 ? "" : "display:none;")">
+                        <h4>@type.CoatypeName Accounts</h4>
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="mb-0">Hierarchical list of @type.CoatypeName accounts</p>
+                            <div class="d-flex gap-2">
+                                <!-- Buttons to expand/collapse entire tree for this step -->
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="COA_Wizard_App.toggleAllNodes(@type.Id, false)">
+                                    Minimize All
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="COA_Wizard_App.toggleAllNodes(@type.Id, true)">
+                                    Maximize All
+                                </button>
+                                <!-- Create top-level (no parent) -->
+                                <button type="button" class="btn btn-sm btn-primary"
+                                        onclick="COA_Wizard_App.openCreateDialog(@type.Id, null, null)">
+                                    Create @type.CoatypeName Account
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="tableContainer-@type.Id">
+                            <p>Loading...</p>
+                        </div>
+
+                        <!-- Step Navigation -->
+                        <div class="d-flex align-items-center mt-3">
+                            @if (i > 0)
+                            {
+                                <button type="button" class="btn btn-ghost-secondary me-2"
+                                        data-hs-step-form-prev-options='{
+                                                  "targetSelector": "#coaTypeStep_@coatypeList[i - 1].Id"
+                                                }'>
+                                    <i class="bi-chevron-left small"></i> Previous step
+                                </button>
+                            }
+
+                            @if (i < coatypeList.Count - 1)
+                            {
+                                <div class="ms-auto">
+                                    <button type="button" class="btn btn-primary"
+                                            data-hs-step-form-next-options='{
+                                                        "targetSelector": "#coaTypeStep_@coatypeList[i + 1].Id"
+                                                    }'>
+                                        Next <i class="bi-chevron-right small"></i>
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="ms-auto">
+                                    <button id="createProjectFinishBtn" type="button" class="btn btn-primary"
+                                            onclick="COA_Wizard_App.finalize()">
+                                        Finish
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Success Message -->
+            <div id="basicStepSuccessMessage" class="js-success-message" style="display:none;">
+                <div class="text-center">
+                    <img class="img-fluid mb-3" src="../assets/svg/illustrations/oc-hi-five.svg" alt="Image Description" style="max-width: 15rem;">
+                    <div class="mb-4">
+                        <h2>Successful!</h2>
+                        <p>All changes have been successfully saved.</p>
+                    </div>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-white" onclick="location.reload()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal for Create/Edit (front-end only, no partial) -->
+<div class="modal fade" id="COAModal" tabindex="-1" aria-labelledby="COAModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="COAModalLabel" class="modal-title">Create COA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="COAForm">
+                    <input type="hidden" id="Modal_CoaId" />
+                    <input type="hidden" id="Modal_CoaTypeId" />
+                    <input type="hidden" id="Modal_CoaCategoryId" />
+                    <input type="hidden" id="Modal_ParentAccountId" />
+
+                    <div class="mb-3">
+                        <label for="Modal_AccountName" class="form-label">Account Name</label>
+                        <input type="text" class="form-control" id="Modal_AccountName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Modal_AccountCode" class="form-label">Account Code</label>
+                        <input type="text" class="form-control" id="Modal_AccountCode" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="Modal_CoaTranType" class="form-label">Transaction Type</label>
+                        <select class="form-select" id="Modal_CoaTranType" required>
+                            <option value="">--Select--</option>
+                            <option value="Debit">Debit</option>
+                            <option value="Credit">Credit</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Modal_Description" class="form-label">Description</label>
+                        <textarea class="form-control" id="Modal_Description"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="Modal_Transable" />
+                        <label class="form-check-label" for="Modal_Transable">Transable</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="COACancelBtn" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button id="COASaveBtn" type="button" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        /************************************************************************
+         * GIGANTIC SINGLE-PAGE WIZARD + IN-MEMORY + EXPAND/COLLAPSE
+         ************************************************************************/
+        const COA_Wizard_App = (() => {
+            // We store data in a dictionary:  dataStore[coatypeId] = { categories: [...], coas: [...] }
+            const dataStore = {};
+
+            // Each COA node structure we store in memory:
+            // {
+            //   Id, AccountName, AccountCode, CoaTranType, Description,
+            //   Transable, CoaCategoryId, ParentAccountId, expanded: true/false,
+            //   children: []
+            // }
+
+            // For categories, we store an array of:
+            // { Id, CoaTypeId, CoaCategoryName, ... }
+
+            let currentMode = 'create'; // or 'edit'
+            let createEditModal;
+            const tenantId = @Model.TenantId;
+            const tenantCompanyId = @Model.TenantCompanyId;
+
+            /*********************************************************************
+             * Expand/Collapse (By default, every node is expanded = true)
+             *********************************************************************/
+            const toggleNode = (coatypeId, coaId) => {
+                const coas = dataStore[coatypeId]?.coas || [];
+                const target = coas.find(x => x.Id === coaId);
+                if (!target) return;
+
+                target.expanded = !target.expanded;
+                renderCoaTree(coatypeId);
+            };
+
+            const toggleAllNodes = (coatypeId, expand) => {
+                const coas = dataStore[coatypeId]?.coas || [];
+                coas.forEach(c => c.expanded = expand);
+                renderCoaTree(coatypeId);
+            };
+
+            /*********************************************************************
+             * DOM Rendering
+             *********************************************************************/
+            const renderCoaTree = (coatypeId) => {
+                console.log(coatypeId, "after")
+                const container = document.getElementById(`tableContainer-${coatypeId}`);
+                if (!container) return;
+                container.innerHTML = '';
+                const categories = dataStore[coatypeId]?.categories || [];
+                const coas = dataStore[coatypeId]?.coas || [];
+                console.log(coas, "after")
+                // Group coas by category
+                let html = '<ul class="coa-tree">';
+                for (const cat of categories) {
+                    const catCoas = coas.filter(c => c.coaCategoryId === cat.id);
+                    html += `
+                        <li>
+                            <div class="coa-node-header">
+                                <span class="coa-name fw-bold">${cat.id} - ${cat.coaCategoryName}</span>
+                                <button class="btn btn-sm btn-white"
+                                        onclick="COA_Wizard_App.openCreateDialog(${coatypeId}, ${cat.id}, null)">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                            ${renderCoaHierarchyHTML(coatypeId, buildCoaHierarchy(catCoas))}
+                        </li>`;
+                }
+                html += '</ul>';
+                console.log(html, "after")
+                container.innerHTML = html;
+                console.log(container, "after")
+            };
+
+            // Build hierarchy
+            const buildCoaHierarchy = (flatCoas) => {
+                const lookup = new Map();
+                flatCoas.forEach(c => {
+                    if (typeof c.expanded === 'undefined') c.expanded = true; // default
+                    if (!c.coaDtoList) c.children = [];
+                    lookup.set(c.id, c);
+                });
+
+                const roots = [];
+                flatCoas.forEach(c => {
+                    if (c.parentAccountId && lookup.has(c.parentAccountId)) {
+                        //lookup.get(c.parentAccountId).coaDtoList.push(c);
+                    } else {
+                        roots.push(c);
+                    }
+                });
+                return roots;
+            };
+
+            const renderCoaHierarchyHTML = (coatypeId, coas) => {
+                if (!coas || coas.length === 0) return '';
+                let html = '<ul class="coa-tree">';
+                for (const c of coas) {
+                    console.log(coas)
+                    const toggleIcon = c.expanded ? '−' : '+';
+                    const childUl = c.expanded ? renderCoaHierarchyHTML(coatypeId, c.coaDtoList) : '';
+                    html += `
+                        <li>
+                            <div class="coa-node-header">
+                                <!-- Toggle Button -->
+                                <span class="coa-toggle-btn" onclick="COA_Wizard_App.toggleNode(${coatypeId}, ${c.id})">
+                                    [${toggleIcon}]
+                                </span>
+                                <span class="coa-name">${c.accountName}</span>
+                                <div class="btn-group">
+                                    <button class="btn btn-sm btn-white" type="button"
+                                            onclick="COA_Wizard_App.openCreateDialog(${coatypeId}, ${c.coaCategoryId}, ${c.id})">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-white" type="button"
+                                            onclick="COA_Wizard_App.openEditDialog(${c.id}, ${coatypeId})">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                            <button class="btn btn-sm btn-white text-danger" type="button"
+                                            onclick="COA_Wizard_App.deleteCoaInMemory(${c.id}, ${coatypeId})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            ${childUl}
+                        </li>`;
+                }
+                html += '</ul>';
+                return html;
+            };
+
+            /*********************************************************************
+             * OPEN CREATE/EDIT DIALOG
+             *********************************************************************/
+            const openCreateDialog = (coatypeId, coaCategoryId, parentAccountId,) => {
+                currentMode = 'create';
+                resetModal();
+                document.getElementById('COAModalLabel').textContent = 'Create COA';
+                document.getElementById('Modal_CoaId').value = 0;
+                document.getElementById('Modal_CoaTypeId').value = coatypeId;
+                document.getElementById('Modal_CoaCategoryId').value = coaCategoryId || '';
+                document.getElementById('Modal_ParentAccountId').value = parentAccountId || '';
+                showModal();
+            };
+
+            const openEditDialog = (coaId, coatypeId) => {
+                currentMode = 'edit';
+                resetModal();
+                document.getElementById('COAModalLabel').textContent = 'Edit COA';
+
+                // Find in memory
+                const coas = dataStore[coatypeId]?.coas || [];
+                const target = coas.find(c => c.Id === coaId);
+                if (!target) {
+                    alert('COA not found in memory for editing.');
+                    return;
+                }
+
+                document.getElementById('Modal_CoaId').value = target.Id;
+                document.getElementById('Modal_CoaTypeId').value = target.CoatypeId;
+                document.getElementById('Modal_CoaCategoryId').value = target.CoaCategoryId || '';
+                document.getElementById('Modal_ParentAccountId').value = target.ParentAccountId || '';
+                document.getElementById('Modal_AccountName').value = target.AccountName || '';
+                document.getElementById('Modal_AccountCode').value = target.AccountCode || '';
+                document.getElementById('Modal_CoaTranType').value = target.CoaTranType || '';
+                document.getElementById('Modal_Description').value = target.Description || '';
+                document.getElementById('Modal_Transable').checked = !!target.Transable;
+
+                showModal();
+            };
+
+            const resetModal = () => {
+                document.getElementById('Modal_CoaId').value = 0;
+                document.getElementById('Modal_CoaTypeId').value = '';
+                document.getElementById('Modal_CoaCategoryId').value = '';
+                document.getElementById('Modal_ParentAccountId').value = '';
+                document.getElementById('Modal_AccountName').value = '';
+                document.getElementById('Modal_AccountCode').value = '';
+                document.getElementById('Modal_CoaTranType').value = '';
+                document.getElementById('Modal_Description').value = '';
+                document.getElementById('Modal_Transable').checked = false;
+            };
+
+            const showModal = () => {
+
+                if (!createEditModal) {
+                    createEditModal = new bootstrap.Modal(document.getElementById('COAModal'));
+                }
+                createEditModal.show();
+            };
+            const hideModal = () => {
+                createEditModal?.hide();
+            };
+
+            /********************************************************
+               *  UTILS
+               ********************************************************/
+              const getCsrfToken = () => {
+                // Adjust if you're using a meta tag or hidden input for anti-forgery
+                const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                return tokenMeta ? tokenMeta.getAttribute('content') : '';
+              };
+
+            /*********************************************************************
+             * SAVE in memory => update server in background
+             *********************************************************************/
+            const onSaveClick = () => {
+                const id = parseInt(document.getElementById('Modal_CoaId').value) || 0;
+                const coatypeId = parseInt(document.getElementById('Modal_CoaTypeId').value) || 0;
+                const coaCategoryId = parseInt(document.getElementById('Modal_CoaCategoryId').value) || 0;
+                const parentString = document.getElementById('Modal_ParentAccountId').value.trim();
+                const parentAccountId = parentString ? parseInt(parentString) : null;
+                const accountName = document.getElementById('Modal_AccountName').value.trim();
+                const accountCode = document.getElementById('Modal_AccountCode').value.trim();
+                const coaTranType = document.getElementById('Modal_CoaTranType').value.trim();
+                const description = document.getElementById('Modal_Description').value.trim();
+                const transable = document.getElementById('Modal_Transable').checked;
+
+                if (!coatypeId) { alert('CoatypeId is missing.'); return; }
+                if (!accountName) { alert('AccountName is required.'); return; }
+
+                if (currentMode === 'create') {
+                    const localId = -(new Date().getTime());  // generate negative ID
+                    const newCoa = {
+                        id: 0,
+                        accountName,
+                        accountCode,
+                        coaTranType,
+                        description,
+                        transable,
+                        coatypeId,
+                        coaCategoryId,
+                        parentAccountId,
+                        expanded: true,
+                        children: []
+                    };
+
+                    dataStore[coatypeId].coas.push(newCoa);
+                    console.log(newCoa,"befor");
+                    console.log(coatypeId, "befor")
+                    renderCoaTree(coatypeId);
+
+                    // server call
+                    // createOnServer(newCoa)
+                    //     .then(serverId => {
+                    //         // If server returns the new ID, update local
+                    //         const arr = dataStore[CoatypeId].coas;
+                    //         const idx = arr.findIndex(x => x.Id === localId);
+                    //         if (idx >= 0) {
+                    //             arr[idx].Id = serverId; // update the local negative ID to real ID
+                    //         }
+                    //     })
+                    //     .catch(err => {
+                    //         console.error('Create failed on server:', err);
+                    //         alert('Create failed. Reverting local...');
+                    //         dataStore[CoatypeId].coas = dataStore[CoatypeId].coas.filter(c => c.Id !== localId);
+                    //         renderCoaTree(CoatypeId);
+                    //     });
+                }
+                else { // edit
+                    const arr = dataStore[CoatypeId].coas;
+                    const index = arr.findIndex(x => x.Id === Id);
+                    if (index < 0) {
+                        alert('COA not found in memory for editing.');
+                        return;
+                    }
+                    const oldValue = { ...arr[index] };
+
+                    arr[index] = {
+                        ...oldValue,
+                        AccountName,
+                        AccountCode,
+                        CoaTranType,
+                        Description,
+                        Transable,
+                        ParentAccountId
+                    };
+                    renderCoaTree(CoatypeId);
+
+                    updateOnServer(arr[index])
+                        .catch(err => {
+                            console.error('Update failed on server:', err);
+                            alert('Update failed. Reverting...');
+                            arr[index] = oldValue;
+                            renderCoaTree(CoatypeId);
+                        });
+                }
+                hideModal();
+            };
+
+            const createOnServer = async (coaObj) => {
+                // Example endpoint
+                const url = '@Url.Action("CreateCOA", "ChartOfAccount", new { area = "Accounts" })';
+                const body = {
+                    ...coaObj,
+                    Id: 0, // server expects 0 or new
+                    TenantId: tenantId,
+                    TenantCompanyId: tenantCompanyId
+                };
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!resp.ok) {
+                    const t = await resp.text();
+                    throw new Error(`CreateOnServer failed: ${resp.status} - ${t}`);
+                }
+                const result = await resp.json();
+                // Suppose we return { success: true, newId: 123 }
+                return result.newId || 0;
+            };
+
+            const updateOnServer = async (coaObj) => {
+                const url = '@Url.Action("UpdateCOA", "ChartOfAccount", new { area = "Accounts" })';
+                const body = {
+                    ...coaObj,
+                    TenantId: tenantId,
+                    TenantCompanyId: tenantCompanyId
+                };
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(body)
+                });
+                if (!resp.ok) {
+                    const t = await resp.text();
+                    throw new Error(`UpdateOnServer failed: ${resp.status} - ${t}`);
+                }
+                const result = await resp.json();
+                if (!result.success) {
+                    throw new Error('Server update not successful.');
+                }
+            };
+
+            /*********************************************************************
+             * DELETE
+             *********************************************************************/
+            const deleteCoaInMemory = (coaId, coatypeId) => {
+                if (!confirm('Are you sure you want to delete this COA?')) return;
+                const arr = dataStore[coatypeId].coas;
+                const idx = arr.findIndex(x => x.Id === coaId);
+                if (idx < 0) {
+                    alert('COA not found in memory for delete.');
+                    return;
+                }
+                const oldValue = arr[idx];
+                arr.splice(idx, 1);
+                renderCoaTree(coatypeId);
+
+                // server
+                const url = '@Url.Action("DeleteCOA", "ChartOfAccount", new { area = "Accounts" })';
+                const body = {
+                    Id: (coaId > 0) ? coaId : 0,
+                    TenantId: tenantId,
+                    TenantCompanyId: tenantCompanyId,
+                    CoatypeId: coatypeId
+                };
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(body)
+                })
+                    .then(resp => {
+                        if (!resp.ok) throw new Error('Delete server error: ' + resp.status);
+                        return resp.json();
+                    })
+                    .then(result => {
+                        if (!result.success) {
+                            throw new Error('Server indicated failure in deletion.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Delete on server failed:', err);
+                        alert('Delete failed on server. Reverting local changes...');
+                        arr.push(oldValue);
+                        renderCoaTree(coatypeId);
+                    });
+            };
+
+            /*********************************************************************
+             * LOADING (categories + coas) for each step
+             *********************************************************************/
+            const loadDataForCoaType = async (coatypeId) => {
+                // We'll assume an endpoint returning { categories: [...], coas: [...] }
+                const url = '@Url.Action("GetAllCoaAndCategories", "ChartOfAccount", new { area = "Accounts" })'
+                    + `?coatypeId=${coatypeId}&tenantId=${tenantId}&tenantCompanyId=${tenantCompanyId}`;
+                const resp = await fetch(url);
+                if (!resp.ok) {
+                    throw new Error(`loadDataForCoaType failed: ${resp.status}`);
+                }
+                const json = await resp.json();
+                console.log(json)
+                // For each COA, default expanded = true
+                json.coas.forEach(coa => {
+                    if (typeof coa.expanded === 'undefined') {
+                        coa.expanded = true;
+                    }
+                    coa.children = [];
+                });
+                dataStore[coatypeId] = {
+                    categories: json.categories || [],
+                    coas: json.coas || []
+                };
+                console.log(dataStore)
+            };
+
+            const initStep = async (coatypeId) => {
+                const container = document.getElementById(`tableContainer-${coatypeId}`);
+                if (container) container.innerHTML = '<p>Loading data...</p>';
+
+                await loadDataForCoaType(coatypeId);
+                renderCoaTree(coatypeId);
+            };
+
+            /*********************************************************************
+             * FINALIZE
+             *********************************************************************/
+            const finalize = async () => {
+                if (!confirm("Are you sure you want to finalize?")) return;
+                try {
+                    const url = '@Url.Action("Finalize", "ChartOfAccount", new { area = "Accounts" })';
+                    const resp = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getCsrfToken() },
+                        body: JSON.stringify({ TenantId: tenantId, TenantCompanyId: tenantCompanyId })
+                    });
+                    if (!resp.ok) throw new Error('Finalize server error.');
+                    const data = await resp.json();
+                    if (data.success) {
+                        document.getElementById('basicStepFormContent').style.display = 'none';
+                        document.getElementById('basicStepFormProgress').style.display = 'none';
+                        document.getElementById('basicStepSuccessMessage').style.display = 'block';
+                    } else {
+                        alert('Failed to finalize changes.');
+                    }
+                } catch (err) {
+                    console.error('Error finalizing changes:', err);
+                    alert('Failed to finalize changes.');
+                }
+            };
+
+            /*********************************************************************
+             * STEP NAVIGATION
+             *********************************************************************/
+            const initStepNavigation = () => {
+                const wrappers = document.querySelectorAll('.step-content-wrapper');
+                wrappers.forEach(wrapper => {
+                    wrapper.addEventListener('click', async () => {
+                        const opts = JSON.parse(wrapper.getAttribute('data-hs-step-form-next-options'));
+                        const targetSelector = opts.targetSelector;
+
+                        // Activate the clicked step
+                        document.querySelectorAll('.step-item').forEach(si => si.classList.remove('active'));
+                        wrapper.closest('.step-item').classList.add('active');
+
+                        // Show the target step
+                        document.querySelectorAll('#basicStepFormContent > div').forEach(div => div.style.display = 'none');
+                        const targetDiv = document.querySelector(targetSelector);
+                        if (targetDiv) {
+                            targetDiv.style.display = 'block';
+                            // parse "coaTypeStep_XX"
+                            const m = targetSelector.match(/coaTypeStep_(\d+)/);
+                            if (m) {
+                                const coatypeId = parseInt(m[1], 10);
+                                if (!dataStore[coatypeId]) {
+                                    await initStep(coatypeId);
+                                }
+                            }
+                        }
+                    });
+                });
+
+                // Previous step
+                const prevButtons = document.querySelectorAll('.btn-ghost-secondary');
+                prevButtons.forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const opts = JSON.parse(btn.getAttribute('data-hs-step-form-prev-options'));
+                        const targetSelector = opts.targetSelector;
+
+                        document.querySelectorAll('.step-item').forEach(si => si.classList.remove('active'));
+                        const targetDiv = document.querySelector(targetSelector);
+                        if (targetDiv) {
+                            // match h4
+                            const heading = targetDiv.querySelector('h4')?.textContent.trim().split(' ')[0];
+                            const stepItem = Array.from(document.querySelectorAll('.step-item')).find(si => {
+                                return si.querySelector('.step-title')?.textContent.trim() === heading;
+                            });
+                            if (stepItem) stepItem.classList.add('active');
+                        }
+
+                        document.querySelectorAll('#basicStepFormContent > div').forEach(div => div.style.display = 'none');
+                        if (targetDiv) {
+                            targetDiv.style.display = 'block';
+                            const m = targetSelector.match(/coaTypeStep_(\d+)/);
+                            if (m) {
+                                const coatypeId = parseInt(m[1], 10);
+                                if (!dataStore[coatypeId]) {
+                                    await initStep(coatypeId);
+                                }
+                            }
+                        }
+                    });
+                });
+            };
+
+            /*********************************************************************
+             * INIT
+             *********************************************************************/
+            const init = async () => {
+                // Load first step
+                const firstTypeId = @((coatypeList.Count > 0) ? coatypeList[0].Id : 0);
+                if (firstTypeId > 0) {
+                    await initStep(firstTypeId);
+                }
+
+                // Step nav
+                initStepNavigation();
+
+                // Hook the "Save" button in the modal
+                document.getElementById('COASaveBtn').addEventListener('click', onSaveClick);
+            };
+
+            // Return public methods
+            return {
+                init,
+                finalize,
+                toggleNode,
+                toggleAllNodes,
+                openCreateDialog,
+                openEditDialog,
+                deleteCoaInMemory
+            };
+        })();
+
+        document.addEventListener('DOMContentLoaded', COA_Wizard_App.init);
+    </script>
+}
+ *@

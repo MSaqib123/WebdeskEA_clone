@@ -1,0 +1,221 @@
+﻿@model CustomerDto
+@{
+    ViewData["Title"] = "Customer";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">@ViewBag.NameOfForm</h1>
+            <h6>Delete @ViewBag.NameOfForm</h6>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Delete" method="post" enctype="multipart/form-data">
+                    <input asp-for="Id" hidden />
+                    <div class="row">
+
+                        <!-- Customer Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Code">Customer Code</label>
+                                <input type="text" asp-for="Code" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Customer Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Name">Customer Name</label>
+                                <input type="text" asp-for="Name" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Customer Phone Number -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="PhoneNo">Phone Number</label>
+                                <input type="text" asp-for="PhoneNo" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Customer Email -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Email">Email</label>
+                                <input type="email" asp-for="Email" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Credit Limit -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CreditLimit">Credit Limit</label>
+                                <input type="number" asp-for="CreditLimit" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- AccountName -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="AccountName">COA Name</label>
+                                <input asp-for="AccountName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Tenant ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="TenantName">TenantName</label>
+                                <input asp-for="TenantName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Company ID -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CompanyName">CompanyName</label>
+                                <input type="number" asp-for="CompanyName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Country -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CountryName">Country</label>
+                                <input asp-for="CountryName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- State Province -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="StateName">State/Province</label>
+                                <input asp-for="StateName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- City -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CityName">City</label>
+                                <input asp-for="CityName" class="form-control" disabled />
+                            </div>
+                        </div>
+
+                        <!-- Customer Login Checkbox -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Is Customer Login</label><br /><br />
+                                <label class="checkboxs mb-5">
+                                    <input type="checkbox" asp-for="IsCustomerLogin" disabled />
+                                    <span class="checkmarks"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Customer Login Link -->
+                        @* <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CustomerLoginLink">Customer Login Link</label>
+                                <input type="text" asp-for="CustomerLoginLink" class="form-control" disabled />
+                            </div>
+                        </div> *@
+
+                        <!-- Customer Username -->
+                        <div class="col-sm-4" id="usernameField">
+                            <div class="mb-4">
+                                <label asp-for="CustomerUserName">Customer Username</label>
+                                <input type="text" asp-for="CustomerUserName" class="form-control" />
+                                <span asp-validation-for="CustomerUserName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Password -->
+                        <div class="col-sm-4" id="passwordField">
+                            <div class="mb-4">
+                                <label asp-for="CustomerPassword">Customer Password</label>
+                                <input type="text" asp-for="CustomerPassword" class="form-control" />
+                                <span asp-validation-for="CustomerPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section scripts
+{
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+            }
+        })()
+
+
+        //______ Toggle Component ____
+        import { ToggleComponent } from '/Frontentjs/dynamicComponents/dynamicToggle.js';
+        new ToggleComponent('IsCustomerLogin', ['usernameField', 'passwordField']);
+    </script>
+    
+}

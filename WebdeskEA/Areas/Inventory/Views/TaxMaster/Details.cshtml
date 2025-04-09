@@ -1,0 +1,144 @@
+﻿@model TaxMasterDto
+@{
+    ViewData["Title"] = "TaxMaster";
+}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">@ViewBag.NameOfForm</h1>
+            <h6>Full details of a @ViewBag.NameOfForm</h6>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <div class="row">
+                    <!-- Tax Name -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TaxName">Tax Name</label>
+                            <input type="text" asp-for="TaxName" class="form-control" disabled />
+                            <span asp-validation-for="TaxName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="AccountName">Account</label>
+                            <input type="text" asp-for="AccountName" class="form-control" step="0.01" disabled />
+                            <span asp-validation-for="AccountName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <!-- Tax Value -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TaxValue">Tax Value</label>
+                            <input type="number" asp-for="TaxValue" class="form-control" step="0.01" disabled />
+                            <span asp-validation-for="TaxValue" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Is Inclusive -->
+                    <div class="col-sm-3">
+                        <div class="mb-4">
+                            <label for="isInclusive">Is Inclusive</label><br />
+                            <div class="form-check form-switch mt-2">
+                                <input type="checkbox" id="isInclusive" asp-for="IsInclusive" class="form-check-input" role="switch" disabled />
+                            </div>
+                            <span asp-validation-for="IsInclusive" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Is Exclusive -->
+                    <div class="col-sm-3">
+                        <div class="mb-4">
+                            <label for="isExclusive">Is Exclusive</label><br />
+                            <div class="form-check form-switch mt-2">
+                                <input type="checkbox" id="isExclusive" asp-for="IsExclusive" class="form-check-input" role="switch" disabled />
+                            </div>
+                            <span asp-validation-for="IsExclusive" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Is Percentage -->
+                    <div class="col-sm-3">
+                        <div class="mb-4">
+                            <label>Is Percentage</label><br />
+                            <div class="form-check form-switch mt-2">
+                                <input type="checkbox" asp-for="IsPercentage" class="form-check-input" role="switch" disabled />
+                            </div>
+                            <span asp-validation-for="IsPercentage" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <!-- Is Fixed -->
+                    <div class="col-sm-3">
+                        <div class="mb-4">
+                            <label>Is Fixed</label><br />
+                            <div class="form-check form-switch mt-2">
+                                <input type="checkbox" asp-for="IsFix" class="form-check-input" role="switch" disabled />
+                            </div>
+                            <span asp-validation-for="IsFix" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="d-flex justify-content-start gap-3">
+                    <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                    <a asp-action="Index" class="btn btn-white" id="bt">Back to List</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section scripts 
+{
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+            }
+        })()
+    </script>
+}

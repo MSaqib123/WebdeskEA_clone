@@ -1,0 +1,136 @@
+﻿@model TenantDto
+@{
+    ViewData["Title"] = "ChartOfAccount";
+}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">@ViewBag.NameOfForm</h1> 
+            <h6>Full details of a  @ViewBag.NameOfForm </h6>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <div class="row">
+                    <!-- Tenant Name -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantName">Tenant Name</label>
+                            <input type="text" asp-for="TenantName" class="form-control" disabled/>
+                        </div>
+                    </div>
+
+                    <!-- Tenant Email -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantEmail">Tenant Email</label>
+                            <input type="email" asp-for="TenantEmail" class="form-control" disabled />
+                        </div>
+                    </div>
+
+                    <!-- Tenant Expiry Date -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantExpiryDate">Expiry Date</label>
+                            <input type="date" asp-for="TenantExpiryDate" class="form-control" disabled />
+                        </div>
+                    </div>
+
+                    <!-- Tenant Companies -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantCompanies">Number of Companies</label>
+                            <input type="number" asp-for="TenantCompanies" class="form-control" disabled />
+                        </div>
+                    </div>
+
+                    <!-- Tenant Users -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantUsers">Number of Users</label>
+                            <input type="number" asp-for="TenantUsers" class="form-control" disabled />
+                        </div>
+                    </div>
+
+                    <!-- Tenant Type Dropdown -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label asp-for="TenantTypeId">TenantType</label>
+                            <input asp-for="TenantTypeName" class="form-control" disabled />
+                        </div>
+                    </div>
+
+                    <!-- Active Checkbox -->
+                    <div class="col-sm-4">
+                        <div class="mb-4">
+                            <label>Active</label><br /><br />
+                            <label class="checkboxs mb-5">
+                                <input type="checkbox" asp-for="Active" disabled />
+                                <span class="checkmarks"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="d-flex justify-content-start gap-3">
+                    <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    <a class="btn btn-primary  me-2" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts 
+{
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+            }
+        })()
+    </script>
+ }

@@ -1,0 +1,87 @@
+﻿@model List<CoaCategoryHierarchyDto>
+
+<ul class="coa-tree">
+    @{
+        int countCat = 1;
+    }
+    @foreach (var categoryHierarchy in Model)
+    {
+        <li>
+            <div class="coa-node-header">
+                <span class="coa-name fw-bold">
+                    @* @categoryHierarchy.CoaCategory.Id - *@
+                    @countCat - @categoryHierarchy.CoaCategory.CoaCategoryName
+                    @{
+                        countCat++;
+                    }
+                </span>
+                <div class="btn-group" role="group">
+                    <!-- TOP-LEVEL CREATE BUTTON:
+                         parentAccountId = null (meaning no parent, i.e. a direct child of this category).
+                         coatypeId       = category's CoaTypeId.
+                         coaCategoryId   = category's Id. -->
+                    <a class="btn btn-white btn-sm" href="javascript:void(0)" title="Create"
+                       onclick="openCreateModal(@categoryHierarchy.CoaCategory.CoaTypeId, @categoryHierarchy.CoaCategory.Id, 0)"> 
+                        <i class="bi-plus-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            @if (categoryHierarchy.COADtoList != null && categoryHierarchy.COADtoList.Any())
+            {
+                <ul>
+                    @foreach (var coa in categoryHierarchy.COADtoList)
+                    {
+                        <li>
+                            <div class="coa-node-header">
+                                <i class="bi bi-person-rolodex" style="font-size:20px"></i>
+                                <span class="coa-name">@coa.AccountName - @coa.AccountCode</span>
+
+                                <div class="btn-group" role="group">
+                                    <!-- CHILD-LEVEL CREATE BUTTON:
+                                         parentAccountId = coa.Id (this becomes the parent for the new child).
+                                         coatypeId       = coa.CoatypeId (same type as the current node).
+                                         coaCategoryId   = null (we typically use the parent's category if needed).
+                                         You can pass the parent's category if you want; depends on your data model. -->
+                                    <a class="btn btn-white btn-sm" title="Create"
+                                       onclick="openCreateModal(@coa.CoatypeId,@coa.CoaCategoryId, @coa.Id)"
+                                       style="padding-left: 10px; padding-right: 8px;">
+                                        <i class="bi-plus-lg"></i>
+                                    </a>
+
+                                    <!-- EDIT BUTTON -->
+                                    <a class="btn btn-white btn-sm" href="javascript:void(0)" title="Edit"
+                                       onclick="openEditModal(@coa.Id, @coa.CoatypeId)"
+                                       style="padding-left: 10px;padding-right: 8px;">
+                                        <i class="bi-pencil-fill me-1"></i>
+                                    </a>
+
+                                    <!-- DELETE BUTTON -->
+                                    @* <div class="btn-group">
+                                        <a class="btn btn-white btn-sm dropdown-toggle dropdown-toggle-empty"
+                                           href="javascript:void(0)"
+                                           data-bs-toggle="dropdown" aria-expanded="false"
+                                           style="padding-left: 10px;padding-right: 8px;">
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-end mt-1">
+                                            <a class="dropdown-item text-danger" href="javascript:void(0)" title="Delete"
+                                               onclick="deleteCOA(@coa.Id, @coa.CoatypeId)">
+                                                <i class="bi-trash dropdown-item-icon me-1"></i> Delete
+                                            </a>
+                                        </div>
+                                    </div> *@
+                                </div>
+                            </div>
+
+                            <!-- If there are nested COAs under this COA, render them with _CoaChildrenPartial -->
+                            @if (coa.COADtoList != null && coa.COADtoList.Any())
+                            {
+                                @Html.Partial("_CoaChildrenPartial", coa.COADtoList)
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </li>
+    }
+</ul>

@@ -1,0 +1,18 @@
+﻿@{
+    if (!User.Identity.IsAuthenticated)
+    {
+        Layout = "_Identity";
+    }
+    else if (User.IsInRole("SuperAdmin"))
+    {
+        Layout = "_LayoutSuperAdmin";
+    }
+    else if (User.IsInRole("Admin"))
+    {
+        Layout = "_Layout";
+    }
+    else
+    {
+        Layout = "_LayoutUser";
+    }
+}

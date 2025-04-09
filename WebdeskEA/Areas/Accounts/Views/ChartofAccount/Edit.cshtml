@@ -1,0 +1,276 @@
+﻿@model COADto
+@{
+    ViewData["Title"] = "ChartOfAccount";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="row">
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <input type="text" asp-for="Code" class="form-control" readonly />
+                                <span asp-validation-for="Code" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CoatypeId">Account Type</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" id="accountType" asp-for="CoatypeId" asp-items="@(new SelectList(Model.CoatypeDtoList, "Id", "CoatypeName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CoatypeId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="AccountName">Account Name</label>
+                                <input type="text" asp-for="AccountName" class="form-control" />
+                                <span asp-validation-for="AccountName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CoaTranType">Transaction Type</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CoaTranType" asp-items="Model.CoaTransactionTypeList" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CoaTranType" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="ParentAccountId">Parent Account</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" id="ParentAccountId" asp-for="ParentAccountId" asp-items="@(new SelectList(Model.COADtoList, "Id", "AccountName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="ParentAccountId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="LevelNo">level</label>
+                                <input type="number" id="levelNo" class="form-control" asp-for="LevelNo" readonly>
+                                <span asp-validation-for="LevelNo" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Account Code</label>
+                                <input type="text" asp-for="AccountCode" id="AccountCode" class="form-control" readonly />
+                                <span asp-validation-for="AccountCode" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-8 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label asp-for="Description">Description</label>
+                                <input type="text" class="form-control" asp-for="Description">
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Transable</label><br /><br />
+                                <label class="checkboxs mb-5">
+                                    <input type="checkbox" asp-for="Transable" />
+                                    <span class="checkmarks"></span>
+                                </label>
+                                <span asp-validation-for="Transable" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+
+
+        $(document).ready(function () {
+
+            $('#accountType').change(function () {
+                var accountTypeId = $(this).val(); // Get the selected Account Type ID
+
+                if (accountTypeId && accountTypeId != "0") {
+                    // Make an AJAX call to fetch parent accounts
+                    var dropdown = document.getElementById('ParentAccountId');
+                    const tomSelectInstance = dropdown.tomselect;
+                    tomSelectInstance.clearOptions();
+                    $.ajax({
+                        url: '@Url.Action("GetParentCOAByCOATypeId", "ChartofAccount", new { area = "Accounts" })',  // Replace with your controller and
+                        type: 'GET',
+                        data: { coatypeId: accountTypeId },
+                        success: function (response) {
+                            $('#AccountCode').val(response.accountCode);
+                            response.parentCOA.forEach(item => {
+                                tomSelectInstance.addOption({ value: item.id, text: item.accountName + ' - ' + item.accountCode });
+                            });
+                            tomSelectInstance.enable();
+
+                        },
+                        error: function () {
+                            alert('An error occurred while fetching parent accounts.');
+                        }
+                    });
+                } else {
+                    alert('Please select correct account type...')
+                    // $('#parentAccountId').empty().append('<option value="0">--- Select ---</option>'); // Reset dropdown
+                }
+            });
+            // Attach change event to the dropdown
+            $('#ParentAccountId').change(function () {
+                var parentAccountId = $(this).val(); // Get selected value
+                var accountTypeId = $('#accountType').val();
+                // Check if a valid value is selected
+                if (parentAccountId && parentAccountId != "0") {
+                    // Make an AJAX call
+                    $.ajax({
+                        url: '@Url.Action("GetLevelNo", "ChartofAccount", new { area = "Accounts" })',  // Replace with your controller and action
+                        type: 'GET',
+                        data: { parentAccountId: parentAccountId, coatypeId: accountTypeId },
+                        success: function (response) {
+                            //console.log(response);
+                            // Update the LevelNo field with the response
+                            $('#levelNo').val(response.levelNo);
+                            $('#AccountCode').val(response.accountCode);
+                        },
+                        error: function () {
+                            alert('An error occurred while fetching data.');
+                        }
+                    });
+                } else {
+                    // Clear the LevelNo field if no valid selection
+                    $.ajax({
+                        url: '@Url.Action("GetLevelNo", "ChartofAccount", new { area = "Accounts" })',  // Replace with your controller and action
+                        type: 'GET',
+                        data: { parentAccountId: 0, coatypeId: accountTypeId },
+                        success: function (response) {
+                            //console.log(response);
+                            // Update the LevelNo field with the response
+                            $('#levelNo').val(response.levelNo);
+                            $('#AccountCode').val(response.accountCode);
+                        },
+                        error: function () {
+                            alert('An error occurred while fetching data.');
+                        }
+                    });
+                }
+            });
+        });
+
+    </script>
+}

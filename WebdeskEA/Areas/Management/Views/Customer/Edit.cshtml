@@ -1,0 +1,306 @@
+﻿@model CustomerDto
+@{
+    ViewData["Title"] = "Customer";
+}
+@{
+    var currentUrl = Context.Request.Path.ToString();
+
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+}
+
+<style>
+    .hiddenField {
+        display: none;
+    }
+
+</style>
+
+
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id"/>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <!-- Display the list of validation errors -->
+                            @if (!ViewData.ModelState.IsValid)
+                            {
+                                <div class="alert alert-danger">
+                                    <strong>Validation Errors:</strong>
+                                    <ul>
+                                        @foreach (var state in ViewData.ModelState)
+                                        {
+                                            if (state.Value.Errors.Count > 0)
+                                            {
+                                                <li>@state.Key: @string.Join(", ", state.Value.Errors.Select(e => e.ErrorMessage))</li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <input type="hidden" asp-for="Code" />
+                                <input type="text" asp-for="Code" class="form-control" disabled />
+                                <span asp-validation-for="Code" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Name -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Name">Name</label>
+                                <input type="text" asp-for="Name" class="form-control" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="PhoneNo">Phone Number</label>
+                                <input type="tel" asp-for="PhoneNo" class="form-control" />
+                                <span asp-validation-for="PhoneNo" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="Email">Email</label>
+                                <input type="email" asp-for="Email" class="form-control" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- CreditLimit -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CreditLimit">CreditLimit</label>
+                                <input type="number" asp-for="CreditLimit" class="form-control" />
+                                <span asp-validation-for="CreditLimit" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Chart of Accounts (COA) -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="COAId">Chart Of Account</label>
+                                <select required class="js-select form-select" asp-for="COAId" asp-items="@(new SelectList(Model.COADtos, "Id", "AccountName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                    <option value="">Select COA</option>
+                                </select>
+                                <span asp-validation-for="COAId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Country Dropdown -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CountryId">Country</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CountryId" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CountryId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- State Province Dropdown -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="StateProvinceId">State/Province</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="StateProvinceId" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="StateProvinceId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- City Dropdown -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CityId">City</label>
+                                <div class="tom-select-custom">
+                                    <select class="js-select form-select" asp-for="CityId" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select ---"}'>
+                                        <option value="0">--- Select ---</option>
+                                    </select>
+                                </div>
+                                <span asp-validation-for="CityId" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Login -->
+                        @* <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="IsCustomerLogin">Is Customer Login?</label><br />
+                                <label class="checkboxs mb-5">
+                                    <input type="checkbox" asp-for="IsCustomerLogin" />
+                                    <span class="checkmarks"></span>
+                                </label>
+                                <span asp-validation-for="IsCustomerLogin" class="text-danger"></span>
+                            </div>
+                        </div> *@
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="IsCustomerLogin">Customer Login?</label>
+                                <div class="form-check form-switch mt-3">
+                                    <input type="checkbox" asp-for="IsCustomerLogin" class="form-check-input" role="switch" />
+                                </div>
+                                <span asp-validation-for="IsCustomerLogin" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Login Link -->
+                        @* <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="CustomerLoginLink">Customer Login Link</label>
+                                <input type="url" asp-for="CustomerLoginLink" class="form-control" />
+                                <span asp-validation-for="CustomerLoginLink" class="text-danger"></span>
+                            </div>
+                        </div> *@
+
+                        <!-- Customer Username -->
+                        <div class="col-sm-4 @(Model.IsCustomerLogin ? "" : "hiddenField")" id="usernameField">
+                            <div class="mb-4">
+                                <label asp-for="CustomerUserName">Customer Username</label>
+                                <input type="text" asp-for="CustomerUserName" class="form-control" />
+                                <span asp-validation-for="CustomerUserName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Customer Password -->
+                        <div class="col-sm-4 @(Model.IsCustomerLogin ? "" : "hiddenField")" id="passwordField">
+                            <div class="mb-4">
+                                <label asp-for="CustomerPassword">Customer Password</label>
+                                <input type="text" asp-for="CustomerPassword" class="form-control" />
+                                <span asp-validation-for="CustomerPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Form buttons -->
+                    <div class="d-flex justify-content-start gap-3">
+                        <button type="submit" class="btn btn-primary me-2">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+    <script type="module">
+        import { LocationDropdownManager } from '/Frontentjs/Dropdowns/locationdropdownmanager.js';
+        const locationDropdownManager = new LocationDropdownManager(
+            '/Common/DropDown',
+            'CountryId',
+            'StateProvinceId',
+            'CityId'
+        );
+
+        // Wait for initialization to complete before setting selected values
+        (async function () {
+            await locationDropdownManager.initializeDropdowns();
+            locationDropdownManager.setSelectedValues({ countryId: @Model.CountryId, stateId: @Model.StateProvinceId, cityId: @Model.CityId });
+        })();
+
+        //______ Toggle Component ____
+        import { ToggleComponent } from '/Frontentjs/dynamicComponents/dynamicToggle.js';
+        new ToggleComponent('IsCustomerLogin', ['usernameField', 'passwordField']);
+    </script>
+}

@@ -1,0 +1,295 @@
+﻿@model ProductDto
+
+@{
+    // If you want default behavior strictly in Razor, do this:
+    // But ideally, do it in the controller/GET action:
+    if (Model.typeOfPartialView == "Purchase")
+    {
+        Model.IsProductBuy = true;
+        Model.IsProductSale = false;
+    }
+    else if (Model.typeOfPartialView == "Sale")
+    {
+        Model.IsProductBuy = false;
+        Model.IsProductSale = true;
+    }
+
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    var coaIncomeOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+       Model.COAIncomeDtos.Select(coa => new { value = coa.Id, text = coa.AccountName })
+    );
+
+    var coaExpenseOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+       Model.COAExpenseDtos.Select(coa => new { value = coa.Id, text = coa.AccountName })
+    );
+}
+
+<form id="createProductForm"
+      asp-action="Create"
+      asp-controller="Product"
+      asp-area="Admin"
+      method="post"
+      enctype="multipart/form-data">
+
+    <!-- Display ModelState errors -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        foreach (var state in ViewData.ModelState)
+        {
+            if (state.Value.Errors.Count > 0)
+            {
+                foreach (var error in state.Value.Errors)
+                {
+                    <script>
+                        notyf.error({
+                            message: '@error.ErrorMessage',
+                            duration: 10000
+                        });
+                    </script>
+                }
+            }
+        }
+    }
+
+    <div class="row">
+        <!-- Product Code -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="ProductCode">Product Code</label>
+                <input type="hidden" asp-for="ProductCode" />
+                <input type="text" class="form-control" asp-for="ProductCode" disabled />
+                <span asp-validation-for="ProductCode" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Product Name -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="ProductName">Name</label>
+                <input type="text" asp-for="ProductName" class="form-control" />
+                <span asp-validation-for="ProductName" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Brand ID -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="BrandId">Brand</label>
+                <div class="tom-select-custom">
+                    <select class="js-select form-select"
+                            asp-for="BrandId"
+                            asp-items="@(new SelectList(Model.BrandDtos, "Id", "BrandName"))">
+                        <option value="0">--- Select Brand ---</option>
+                    </select>
+                </div>
+                <span asp-validation-for="BrandId" class="text-danger"></span>
+            </div>
+        </div>
+        <!-- Categoyr -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="CategoryId">Select Category</label>
+                <div class="tom-select-custom">
+                    <select class="js-select form-select" asp-for="CategoryId" asp-items="@(new SelectList(Model.CategoryDtos, "Id", "CategoryName"))" autocomplete="off" data-hs-tom-select-options='{"placeholder": "--- Select Category ---","create": true}'>
+                        <option value="0">-- Select Category --</option>
+                    </select>
+                </div>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+        </div>
+        <!-- Sale Tax ID -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="TaxId">Select Tax</label>
+                <div class="tom-select-custom">
+                    <select class="js-select form-select"
+                            asp-for="TaxId"
+                            asp-items="@(new SelectList(Model.TaxMasterDtos, "Id", "TaxName"))"
+                            autocomplete="off">
+                        <option value="0">--- Select Tax ---</option>
+                    </select>
+                </div>
+                <span asp-validation-for="TaxId" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Product SKU -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="ProductSKU">SKU</label>
+                <input type="text" asp-for="ProductSKU" class="form-control" />
+                <span asp-validation-for="ProductSKU" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Product Description -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="ProductDescription">Description</label>
+                <textarea asp-for="ProductDescription" class="form-control"></textarea>
+                <span asp-validation-for="ProductDescription" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Product Price -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label asp-for="ProductPrice">Price</label>
+                <input type="number" asp-for="ProductPrice" class="form-control" />
+                <span asp-validation-for="ProductPrice" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Toggle: Buy -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label>Buy</label><br />
+                <div class="form-check form-switch mt-3">
+                    <!--
+                        If your Model.IsProductBuy is already true in your controller
+                        for "Purchase", you don't need the extra `checked` attribute.
+                        If you want it purely in Razor, do:
+                        checked="@(Model.typeOfPartialView == "Purchase" ? "checked" : "")"
+                    -->
+                    <input type="checkbox" asp-for="IsProductBuy" class="form-check-input" role="switch" />
+                </div>
+                <span asp-validation-for="IsProductBuy" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Toggle: Sale -->
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <label>Sale</label><br />
+                <div class="form-check form-switch mt-3">
+                    <!--
+                        Similarly, default to checked if 'Sale' partial:
+                        checked="@(Model.typeOfPartialView == "Sale" ? "checked" : "")"
+                    -->
+                    <input type="checkbox" asp-for="IsProductSale" class="form-check-input" role="switch" />
+                </div>
+                <span asp-validation-for="IsProductSale" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="mb-4">
+                <input type="file" id="ImageForSave" hidden asp-for="ImageForSave" />
+            </div>
+        </div>
+
+
+        <!-- Income Account -->
+        <div class="row mb-4" id="IncomeAccount">
+            <div class="col-sm-4">
+                <label for="Income" class="col-sm-4 col-form-label form-label">Income Account</label>
+                <div class="tom-select-custom">
+                    <select class="js-select form-select"
+                            name="@nameof(Model.SelectedIncomeCOAs)"
+                            id="@nameof(Model.SelectedIncomeCOAs)"
+                            asp-items="@(new SelectList(Model.COAIncomeDtos, "Id", "AccountName"))"
+                            autocomplete="off">
+                        <option value="0">--- Select ---</option>
+                    </select>
+                </div>
+                <div id="addCOAIncomeContainer"></div>
+                <a class="js-create-field form-link" id="CreateCOAIncomeButton" href="javascript:;">
+                    <i class="bi-plus"></i> Add Income Account
+                </a>
+            </div>
+        </div>
+
+        <!-- Expense Account -->
+        <div class="row mb-4" id="ExpenseAccount">
+            <div class="col-sm-4">
+                <label for="Expense" class="col-sm-4 col-form-label form-label">Expense Account</label>
+                <div class="tom-select-custom">
+                    <select class="js-select form-select"
+                            name="@nameof(Model.SelectedExpenseCOAs)"
+                            id="@nameof(Model.SelectedExpenseCOAs)"
+                            asp-items="@(new SelectList(Model.COAExpenseDtos, "Id", "AccountName"))"
+                            autocomplete="off">
+                        <option value="0">--- Select ---</option>
+                    </select>
+                </div>
+                <div id="addCOAExpenseContainer"></div>
+                <a class="js-create-field form-link" id="CreateCOAExpenseButton" href="javascript:;">
+                    <i class="bi-plus"></i> Add Expense Account
+                </a>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-flex justify-content-start gap-3">
+            <button type="submit" class="btn btn-primary me-2">Submit</button>
+            <button type="button" class="btn btn-white" data-bs-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+
+    <!--
+       If you do NOT want to hide/show accounts at all (per your "do not do display none" comment),
+       you can remove any JS that manipulates visibility.
+
+       If you still want to hide/show them depending on toggles, keep a script like:
+    -->
+    <script>
+        (function () {
+            let saleToggle = document.querySelector('#IsProductSale');
+            let buyToggle = document.querySelector('#IsProductBuy');
+            let incomeAccount = document.getElementById('IncomeAccount');
+            let expenseAccount = document.getElementById('ExpenseAccount');
+
+            // If you WANT to hide or show them, uncomment below:
+            function toggleAccountVisibility(toggleElement, accountElement) {
+                if (toggleElement && accountElement) {
+                    accountElement.style.display = toggleElement.checked ? 'block' : 'none';
+                }
+            }
+
+            if (saleToggle && incomeAccount) {
+                toggleAccountVisibility(saleToggle, incomeAccount);
+                saleToggle.addEventListener('change', () => {
+                    toggleAccountVisibility(saleToggle, incomeAccount);
+                });
+            }
+
+            if (buyToggle && expenseAccount) {
+                toggleAccountVisibility(buyToggle, expenseAccount);
+                buyToggle.addEventListener('change', () => {
+                    toggleAccountVisibility(buyToggle, expenseAccount);
+                });
+            }
+        })();
+    </script>
+
+    <script type="module">
+        import { MultiDropdownRendering } from '/Frontentjs/Dropdowns/MultiDropdownRendring.js';
+        let COAIncomeDtos = @Html.Raw(coaIncomeOptions);
+        let COAExpenseDtos = @Html.Raw(coaExpenseOptions);
+        let Income = new MultiDropdownRendering('#addCOAIncomeContainer', '#CreateCOAIncomeButton', '@nameof(Model.SelectedIncomeCOAs)', COAIncomeDtos);
+        let Expense = new MultiDropdownRendering('#addCOAExpenseContainer', '#CreateCOAExpenseButton', '@nameof(Model.SelectedExpenseCOAs)', COAExpenseDtos);
+
+        import { TomSelectHandler } from '/Frontentjs/dynamicComponents/dynamicDropdownAddValue.js';
+        let brandHandler1 = new TomSelectHandler('BrandId', '_brand', 'BrandDto', 'Id', 'BrandName');
+
+        import { ProBaseUploader } from '/Frontentjs/dynamicComponents/dynamicFileUploader.js';
+        const uploader = new ProBaseUploader({
+            labelName: 'No Image Selected',
+            linkName: 'Upload Image',
+            inputId: 'ImageForSave',
+            actionType: 'create',
+            isImage: true,
+            isMultiImage: false, // Set true if multiple images
+            imageTypes: 'png,jpg,jpeg',
+            isFiles: false,
+            isMultiFile: false,
+            //fileTypes: 'doc,docx,pdf,txt'
+
+        });
+    </script>
+
+</form>

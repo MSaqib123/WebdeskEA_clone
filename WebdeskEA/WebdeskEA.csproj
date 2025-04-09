@@ -1,0 +1,136 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Areas\Customers\**" />
+    <Compile Remove="Areas\RestApi\**" />
+    <Compile Remove="Areas\Security\Views\**" />
+    <Content Remove="Areas\Customers\**" />
+    <Content Remove="Areas\RestApi\**" />
+    <Content Remove="Areas\Security\Views\**" />
+    <EmbeddedResource Remove="Areas\Customers\**" />
+    <EmbeddedResource Remove="Areas\RestApi\**" />
+    <EmbeddedResource Remove="Areas\Security\Views\**" />
+    <None Remove="Areas\Customers\**" />
+    <None Remove="Areas\RestApi\**" />
+    <None Remove="Areas\Security\Views\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Areas\Inventory\Controllers\mgbglvzy.3ig~" />
+    <None Remove="Areas\Inventory\Views\TaxMaster\Delete.cshtml~RF3f09e2d.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\Template\documentation\node_modules\chartjs-plugin-datalabels\dist\chartjs-plugin-datalabels.min.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Areas\Admin\Views\StoredProcedures\Index.cshtml" />
+    <None Include="Areas\Settings\Views\Toaster\Index.cshtml" />
+    <None Include="wwwroot\lib\notyf\customNotyF.js" />
+    <None Include="wwwroot\lib\notyf\notyf.es.js" />
+    <None Include="wwwroot\lib\notyf\notyf.es.min.js" />
+    <None Include="wwwroot\lib\notyf\notyf.js" />
+    <None Include="wwwroot\lib\notyf\notyf.min.js" />
+    <None Include="wwwroot\lib\notyf\notyf.umd.js" />
+    <None Include="wwwroot\lib\notyf\notyf.umd.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="DinkToPdf" Version="1.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+    <PackageReference Include="Rotativa.AspNetCore" Version="1.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WebdeskEA.Core\WebdeskEA.Core.csproj" />
+    <ProjectReference Include="..\WebdeskEA.DataAccess\WebdeskEA.DataAccess.csproj" />
+    <ProjectReference Include="..\WebdeskEA.Domain\WebdeskEA.Domain.csproj" />
+    <ProjectReference Include="..\WebdeskEA.Models\WebdeskEA.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Areas\Accounts\Views\OB\Create.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Accounts\Views\OB\Edit.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Admin\Views\FinancialYear\Index.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Admin\_ViewStart.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\CompanySites\_ViewStart.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Dashboard\_ViewStart.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Inventory\Views\PI\Details.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Inventory\Views\PO\Details.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Inventory\Views\PO\DetailsPrint.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Update="Areas\Inventory\Views\Product\_CreateProductPartial.cshtml">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Areas\Common\Views\" />
+    <Folder Include="wwwroot\uploads\Category\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Areas\Admin\Views\FinancialYear\Create.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Areas\Admin\Views\FinancialYear\Create.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Admin\Views\FinancialYear\Delete.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Admin\Views\FinancialYear\Details.cshtml" />
+    <_ContentIncludedByDefault Remove="Areas\Admin\Views\FinancialYear\Edit.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Areas\Admin\Views\FinancialYear\Delete.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Areas\Admin\Views\FinancialYear\Details.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Areas\Admin\Views\FinancialYear\Edit.cshtml" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,74 @@
+﻿@model COADto
+
+<div class="modal-content">
+    <!-- AJAX loaded partial: _COAModalPartial -->
+    <div class="modal-header">
+        <h5 class="modal-title">@((Model.Id == 0) ? "Create Account" : "Edit Account")</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <form id="COAForm" method="post" action="@Url.Action("CreateOrUpdateCOA", "chartOfAccount", new { area = "Accounts" })">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model.Id" />
+        <input type="hidden" name="CoatypeId" value="@Model.CoatypeId" />
+        <input type="hidden" name="TenantId" value="@Model.TenantId" />
+        <input type="hidden" name="TenantCompanyId" value="@Model.TenantCompanyId" />
+
+        @* If there's a Category ID, store it *@
+        @if (Model.CoaCategoryId > 0)
+        {
+            <input type="hidden" name="CoaCategoryId" value="@Model.CoaCategoryId" />
+        }
+
+        @* If there's a ParentAccountId, store it *@
+        @if (Model.ParentAccountId.HasValue)
+        {
+            <input type="hidden" name="ParentAccountId" value="@Model.ParentAccountId" />
+        }
+
+        <div class="modal-body" style="margin-bottom:0px;padding-bottom:0px">
+            <div class="mb-2">
+                <label for="AccountName" class="form-label">Account Name</label>
+                <input type="text" class="form-control" name="AccountName" id="AccountName"
+                       value="@Model.AccountName"/>
+            </div>
+
+            <div  class="mb-2">
+                <label for="Code" class="form-label">Code</label>
+                <input type="text" class="form-control" name="Code" id="Code"
+                       value="@Model.Code" readonly />
+            </div>
+            <div>
+                <label for="AccountCode" class="form-label">Account Code</label>
+                <input type="text" class="form-control" name="AccountCode" id="AccountCode"
+                       value="@Model.AccountCode" readonly />
+            </div>
+
+            <div class="mb-2">
+                <label for="CoaTranType" class="form-label">Transaction Type</label>
+                @Html.DropDownListFor(m => m.CoaTranType,
+                         Model.CoaTransactionTypeList,
+                         "--Select--",
+                         new { @class = "form-select", @id = "CoaTranType", required = "required" })
+            </div>
+
+            <div class="mb-2">
+                <label for="Description" class="form-label">Description</label>
+                <textarea class="form-control" name="Description" id="Description">@Model.Description</textarea>
+            </div>
+          
+                    <input type="number" name="LevelNo" class="form-control" hidden value="@Model.LevelNo" readonly>
+                   
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="Transable" name="Transable"
+                @(Model.Transable ? "checked" : "") />
+                <label class="form-check-label" for="Transable">Transable</label>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">@((Model.Id == 0) ? "Create" : "Update")</button>
+        </div>
+    </form>
+
+</div>

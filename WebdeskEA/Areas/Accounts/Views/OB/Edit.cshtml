@@ -1,0 +1,219 @@
+﻿@model OBDto
+@{
+    ViewData["Title"] = "Opening Balance";
+}
+
+@{
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    // Prepare COA Options
+    var coaOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.COADtos.Select(x => new { x.Id, x.AccountName })
+    );
+
+    // Prepare Transaction Type Options
+    var tranTypeOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+        Model.CoaTransactionTypeList.Select(x => new { x.Value, x.Text })
+    );
+
+    // Prefilled Data for Edit (Empty for Create)
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.OBDtlDtos);
+}
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Update @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form id="obForm"
+                      class="js-validate"
+                      asp-action="Edit"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+
+                        <!-- OB Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="OBCode" />
+                                    <input type="text" class="form-control" asp-for="OBCode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- OB Date -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="OBDate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="OBDate"
+                                           class="form-control"
+                                           required
+                                           data-msg="Please select a valid date.">
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Opening</h5>
+                                    </div>
+                                    <div class="card-body" id="obCreateContainer">
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle table-nowrap" id="obTransactionTable">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th width="30%">Account</th>
+                                                        <th width="30%">Transaction Type</th>
+                                                        <th width="20%">Open Balance</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="obTransactionTableBody">
+                                                    <!-- Dynamic rows will be inserted here -->
+                                                </tbody>
+                                                <tfoot style="text-align:center">
+                                                    <tr>
+                                                        <td colspan="4" style="text-align: center;">
+                                                            <button id="addRowBtn" class="btn btn-soft-primary">
+                                                                <i class="bi-plus"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary me-2" id="submitBtn">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Fix for dropdown overflow in the table */
+    .tom-select-dropdown {
+        z-index: 1050 !important; /* Ensure dropdown appears above other elements */
+    }
+
+    .table-responsive {
+        overflow: visible !important; /* Allow the dropdown to display properly */
+    }
+</style>
+
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+    <script type="module">
+        import { OBDynamicTable } from '/Frontentjs/dynamicComponents/OBDynamicTable.js';
+
+        const coaData = @Html.Raw(@coaOptions);
+        const tranTypeData = @Html.Raw(@tranTypeOptions);
+        const prefilledRows = @Html.Raw(@prefilledVoucher);
+
+        const obNameAttributes = {
+            base: "OBDtlDtos",
+            coaId: "COAId",
+            obDtlTranType: "OBDtlTranType",
+            obDtlOpenBlnc: "OBDtlOpenBlnc",
+        };
+
+        new OBDynamicTable(
+            "obTransactionTableBody",
+            "addRowBtn",
+            {
+                coasData: coaData,
+                transactionTypesData: tranTypeData,
+                prefilledRows: prefilledRows, // Corrected
+                mode: 'edit',
+                editTemplateType: 'Template_1', // Default behavior
+            },
+            obNameAttributes
+        );
+    </script>
+}

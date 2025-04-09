@@ -1,0 +1,740 @@
+﻿@model PODto
+@{
+    ViewData["Title"] = "Purchase Order";
+}
+
+@{
+    var currentUrl = Context.Request.Path.ToString();
+    var tenantId = Context.TenantId();
+    var companyId = Context.CompanyId();
+    var isTenantAdmin = Context.IsTenantAdmin();
+
+    //Create
+    var productOptions = Newtonsoft.Json.JsonConvert.SerializeObject(
+      Model.ProductDtos.Select(x => new { value = x.Id, text = x.ProductName, unitPrice = x.ProductPrice, stock = x.Stock })
+    );
+    var taxMasterJson = Newtonsoft.Json.JsonConvert.SerializeObject(Model.TaxMasterDtos);
+
+    //Edit  --> then we have to loop through the COADtlDto
+    var prefilledVoucher = Newtonsoft.Json.JsonConvert.SerializeObject(Model.PODtlDtos);
+    var preFilledTaxMaster = Newtonsoft.Json.JsonConvert.SerializeObject(Model.PODtlTaxDtos);
+}
+
+
+<!--====================== -->
+<!-- The Bootstrap modal -->
+<!--====================== -->
+<div class="modal fade" id="createProductModal" tabindex="-1" aria-labelledby="createProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createProductModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="createSupplierModal" tabindex="-1" aria-labelledby="createSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Create Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="createSupplierModalBody">
+                <div class="text-center text-muted">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="page-header">
+    <div class="row align-items-center">
+        <div class="col-sm mb-2 mb-sm-0">
+            <h1 class="page-header-title">Add @ViewBag.NameOfForm</h1>
+        </div>
+    </div>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    foreach (var state in ViewData.ModelState)
+    {
+        if (state.Value.Errors.Count > 0)
+        {
+            foreach (var error in state.Value.Errors)
+            {
+                <script>
+                    notyf.error({
+                        message: '@error.ErrorMessage',
+                        duration: 10000 // 10 seconds
+                    });
+                </script>
+            }
+        }
+    }
+}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <!-- Body -->
+            <div class="card-body">
+                <form id="productForm"
+                      class="js-validate"
+                      asp-action="Create"
+                      method="post"
+                      enctype="multipart/form-data"
+                      novalidate>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <h5>General Information</h5>
+                            </div>
+                        </div>
+
+                        <!-- Product Code -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label>Code</label>
+                                <div class="js-form-message">
+                                    <input type="hidden" asp-for="POCode" />
+                                    <input type="text" class="form-control" asp-for="POCode" required data-msg="Code is Required." disabled />
+                                    <span class="invalid-feedback">Code is Required.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SO Date -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="PODate">Date</label>
+                                <div class="js-form-message">
+                                    <input type="date" asp-for="PODate"
+                                           class="form-control"
+                                           required
+                                           data-msg="Please select a valid date.">
+                                    <span class="invalid-feedback">Please select a valid date.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Supplier -->
+                        <div class="col-sm-4">
+                            <div class="mb-4">
+                                <label asp-for="SupplierId">Supplier</label>
+                                <div class="input-group tom-select-custom js-form-message">
+                                    <select id="SupplierId"
+                                            class="js-select form-select"
+                                            asp-for="SupplierId"
+                                            asp-items="@(new SelectList(Model.SupplierDtos, "Id", "Name"))"
+                                            required
+                                            data-msg="Please select a Supplier."
+                                            data-hs-tom-select-options='{"placeholder": "--- Select Supplier ---"}'>
+                                        <option value="">--- Select Supplier ---</option>
+                                    </select>
+                                    <!-- Button appended to the input group -->
+                                    <button type="button"
+                                            class="btn btn-soft-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#createSupplierModal">
+                                        <i class="bi-plus"></i>
+                                    </button>
+                                </div>
+                                <span class="invalid-feedback">Please select a valid supplier.</span>
+                            </div>
+                        </div>
+
+
+
+                        <!-- Narration -->
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <label asp-for="PONarration">Narration</label>
+                                <div class="js-form-message">
+                                    <input type="text" asp-for="PONarration"
+                                           class="form-control"
+                                           data-msg="Please provide a narration.">
+                                    <span class="invalid-feedback">Please provide a valid narration.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        @{
+                            #region OK
+                        }
+                        <div class="col-sm-12">
+                            <div class="mb-4">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="card-title">Product / Service</h5>
+                                        <button type="button" class="btn btn-soft-primary" data-bs-toggle="modal" data-bs-target="#createProductModal">
+                                            <i class="bi-plus"></i> New Product
+                                        </button> 
+                                    </div>
+                                    <div class="card-body" id="soCreateContainer">
+
+                                        <div class="table-responsive">
+                                            <table class="table align-middle table-nowrap" id="productTable">
+                                                <thead class="thead-light">
+                                                    <tr>
+                                                        <th width="30%">Product</th>
+                                                        <th>Current Stock</th>
+                                                        <th>Unit Price</th>
+                                                        <th width="10%">Quantity</th>
+                                                        <th>Price</th>
+                                                        <th>Price After VAT</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="productTableBody">
+                                                    <!-- Dynamic rows will be inserted here -->
+                                                </tbody>
+                                                <tfoot style="text-align:center">
+                                                    <tr>
+                                                        <td colspan="6" style="text-align: center;">
+                                                            <button id="addRowBtn" class="btn btn-soft-primary">
+                                                                <i class="bi-plus"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                        <!-- Total Summary -->
+                                        <div class="mt-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <div class="row">
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-primary text-primary fs-5">Total Quantity:</span>
+                                                            <span id="totalQuantity" class="text-dark fs-5 fw-bold">0</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-info text-info fs-5">Total Per Piece Price:</span>
+                                                            <span id="totalPerPiecePrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-warning text-warning fs-5">Total Unit Price:</span>
+                                                            <span id="totalUnitPrice" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                        <div class="col text-end">
+                                                            <span class="badge bg-soft-success text-success fs-5">Total Price:</span>
+                                                            <span id="grandTotal" class="text-dark fs-5 fw-bold">0.00</span>
+                                                        </div>
+                                                    </div>
+                                                    <hr />
+                                                    <div class="row mt-3" id="vatBreakdownRow">
+                                                    </div>
+                                                    <!-- Hidden VAT breakdown inputs for model binding -->
+                                                    <div id="vatBreakdownHiddenContainer" style="display:none;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @{
+                            #endregion
+                        }
+
+
+                        <div class="row d-flex justify-content-center">
+                            <!-- Subtotal -->
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="POSubTotal">SubTotal</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="POSubTotal" class="form-control subtotal-hidden" />
+                                        <input asp-for="POSubTotal"
+                                               class="form-control subtotal-visible"
+                                               disabled
+                                               required
+                                               data-msg="Subtotal is required.">
+                                        <span class="invalid-feedback">Please provide a valid subtotal.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Discount -->
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="PODiscount">Discount</label>
+                                    <div class="js-form-message">
+                                        <input asp-for="PODiscount"
+                                               class="form-control discount-input"
+                                               data-msg="Discount cannot exceed subtotal.">
+                                        <span class="invalid-feedback">Please provide a valid discount.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Total -->
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label asp-for="POTotal">Total</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="POTotal" class="form-control total-hidden" />
+                                        <input asp-for="POTotal"
+                                               class="form-control total-visible"
+                                               disabled
+                                               required
+                                               data-msg="Total is required.">
+                                        <span class="invalid-feedback">Please provide a valid total.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="col-sm-3">
+                                <div class="mb-4">
+                                    <label for="POTotalAfterVAT">Total (After VAT)</label>
+                                    <div class="js-form-message">
+                                        <input type="hidden" asp-for="POTotalAfterVAT" class="form-control totalVat-hidden" />
+                                        <input type="text" asp-for="POTotalAfterVAT" class="form-control totalVat-Visible" disabled value="0.00" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-left gap-3 mt-3">
+                        <button type="submit" class="btn btn-primary me-2" id="submitBtn">Submit</button>
+                        <a asp-action="Index" class="btn btn-white" id="bt">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Fix for dropdown overflow in the table */
+    .tom-select-dropdown {
+        z-index: 1050 !important; /* Ensure dropdown appears above other elements */
+    }
+
+    .table-responsive {
+        overflow: visible !important; /* Allow the dropdown to display properly */
+    }
+
+</style>
+<!-- JS CompanySelect -->
+<script src="~/FrontentJs/dropdowns/companyselect.js"></script>
+
+@section scripts {
+
+    <script>
+        (function () {
+            window.onload = function () {
+
+
+                // INITIALIZATION OF NAVBAR VERTICAL ASIDE
+                // =======================================================
+                new HSSideNav('.js-navbar-vertical-aside').init()
+
+
+                // INITIALIZATION OF FORM SEARCH
+                // =======================================================
+                new HSFormSearch('.js-form-search')
+
+
+                // INITIALIZATION OF BOOTSTRAP DROPDOWN
+                // =======================================================
+                HSBsDropdown.init()
+
+
+                // INITIALIZATION OF SELECT
+                // =======================================================
+                HSCore.components.HSTomSelect.init('.js-select')
+
+
+                // INITIALIZATION OF ADD FIELD
+                // =======================================================
+                new HSAddField('.js-add-field', {
+                    addedField: field => {
+                        HSCore.components.HSTomSelect.init(field.querySelector('.js-select-dynamic'))
+                        HSCore.components.HSMask.init(field.querySelector('.js-input-mask'))
+                    }
+                })
+
+
+                // INITIALIZATION OF INPUT MASK
+                // =======================================================
+                HSCore.components.HSMask.init('.js-input-mask')
+
+
+                // INITIALIZATION CompanySelect
+                // =======================================================
+                var companyId = '@companyId';
+                initializeCompanySelect(companyId);
+            }
+        })()
+    </script>
+
+
+    <script>
+        (function () {
+            // INITIALIZATION OF FORM VALIDATION
+            // =======================================================
+            HSBsValidation.init('.js-validate');
+
+            // Additional Validation for Products
+            const form = document.getElementById('productForm');
+            form.addEventListener('submit', function (event) {
+                //event.preventDefault();
+                const rows = document.querySelectorAll("#productTableBody tr");
+                if (rows.length === 0) {
+                    event.preventDefault();
+                    notyf.error({
+                        message: "You must add at least one product.",
+                        duration: 10000, // 10 seconds
+                    });
+                    return;
+                }
+
+                let isValid = true;
+
+                rows.forEach(row => {
+                    const qty = parseFloat(row.querySelector('.product-qty').value) || 0;
+                    const total = parseFloat(row.querySelector('.product-total').textContent) || 0;
+
+                    if (qty <= 0 || total <= 0) {
+                        isValid = false;
+                    }
+                });
+
+                if (!isValid) {
+                    event.preventDefault();
+                    notyf.error({
+                        message: "Each product must have a valid quantity and total price.",
+                        duration: 10000, // 10 seconds
+                    });
+                }
+            });
+        })();
+    </script>
+
+
+    <script type="module">
+
+
+        //=======================================================================
+        //============================ Component version 2 =======================
+        //=======================================================================
+        import { AdvancedDynamicTable } from '/Frontentjs/dynamicComponents/dynamicTable.js';
+
+        // Parse prefilled data from the server
+        let prefilledRows = @Html.Raw(prefilledVoucher);           // Array of SODtlDtos with real IDs
+        let prefilledTaxMaster = @Html.Raw(preFilledTaxMaster);   // Array of SODtlTaxDtos with real SODtlIds
+
+        // Step 1: Assign fake IDs to prefilledRows and build sodtlIdMap
+        let fakeIdCounter = 1; // Start fake IDs from 1
+        const podtlIdMap = {};  // Map fakeId -> realId
+
+        prefilledRows.forEach(row => {
+            podtlIdMap[fakeIdCounter] = row.Id; // Map fakeId to realId
+            row.Id = fakeIdCounter;            // Assign fakeId to row
+            fakeIdCounter++;
+        });
+
+        // Step 2: Update prefilledTaxMaster to use fake SODtlIds
+        prefilledTaxMaster.forEach(tax => {
+            // Find the fakeId corresponding to the real SODtlId
+            const fakeId = Object.keys(podtlIdMap).find(key => podtlIdMap[key] === tax.PODtlId);
+            if (fakeId) {
+                tax.PODtlId = parseInt(fakeId); // Replace real SODtlId with fakeId
+            } else {
+                console.warn(`No fakeId found for SODtlId: ${tax.PODtlId}. This tax record will be skipped.`);
+            }
+        });
+
+        // Parse other necessary data
+        let productsData = @Html.Raw(productOptions);             // e.g. [ {value:1,text:"ProductA",unitPrice:100,stock:50}, ... ]
+        const taxMasterData = @Html.Raw(taxMasterJson);             // e.g. [ {id:1,taxName:"CGST",taxValue:9}, ... ]
+
+        const poNameAttributes = {
+            base: "@nameof(@Model.PODtlDtos)",
+            productId: "@nameof(PODtlDto.ProductId)",
+            quantity: "@nameof(PODtlDto.PODtlQty)",
+            unitPrice: "@nameof(PODtlDto.PODtlPrice)",
+            total: "@nameof(PODtlDto.PODtlTotal)",
+            afterVAT: "@nameof(PODtlDto.PODtlTotalAfterVAT)",
+        };
+
+        // Initialize the AdvancedDynamicTable with modified prefilledRows and prefilledTaxMaster
+        new AdvancedDynamicTable(
+            "productTableBody",
+            "addRowBtn",
+            {
+                productsData,
+                prefilledRows,
+                taxMasterData,
+                prefilledTaxMaster,
+                taxDetailCollectionName: "PODtlTaxDtos",
+                vatBreakdownCollectionName: "POVATBreakdownDtos",
+                subtotalId: "@nameof(Model.POSubTotal)",
+                totalId: "@nameof(Model.POTotal)",
+                discountId: "@nameof(Model.PODiscount)",
+                detailIdFieldName: "PODtlId",
+                docIdFieldName: "POId",
+
+                isDiscountAllowed: true,
+                isEditMode: true,
+                mode: 'create',
+                editTemplateType: 'Template_1',
+
+                // Optional field mappings
+                unitPriceFields: ["unitprice", "productprice", "price"],
+                stockFields: ["stock", "currentstock", "quantityinstock"],
+                quantityFields: ["quantity", "qty"]
+            },
+            poNameAttributes
+        );
+
+
+        //==================================================
+        //================= Product opening ================
+        //==================================================
+
+        $(function () {
+            // When the modal is about to be shown
+            $('#createProductModal').on('show.bs.modal', function (event) {
+                $('#createProductModalBody').empty();
+                let $modalBody = $('#createProductModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Product", new { area = "Inventory", typeOfPartialView = "Purchase" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+
+                        let $form = $('#createProductForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateProductForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Product", new { area = "Inventory" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewProductToAllProductSelects(json.newProductId, json.newProductName);
+                            let modal = document.getElementById('createProductModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Product created: ${json.newProductName}`);
+
+                            productsData.push({
+                                value: json.newProductId,
+                                text: json.newProductName,
+                                unitPrice: json.newProductUnitPrice,
+                                stock: 0
+                            });
+                        } else {
+                            notyf.error("Failed to create product (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createProductModalBody').html(html);
+
+                        let $newForm = $('#createProductForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateProductForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting product form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewProductToAllProductSelects(productId, productName) {
+                let $productSelects = $('.product-select');
+                if ($productSelects.length === 0) return; // No such dropdowns
+
+                $productSelects.each(function () {
+                    let tomSelectInstance = this.tomselect;
+
+                    if (tomSelectInstance) {
+                        // 1. Add the new option to TomSelect
+                        tomSelectInstance.addOption({
+                            value: productId,
+                            text: productName
+                        });
+
+                        // 2. Set the newly added product as the selected value
+                        //tomSelectInstance.setValue(productId);
+                    }
+                });
+            }
+
+        });
+
+
+
+
+
+        //==================================================
+        //================= Supplier opening ===============
+        //==================================================
+        $(function () {
+            // When the modal is about to be shown
+            $('#createSupplierModal').on('show.bs.modal', function (event) {
+                $('#createSupplierModalBody').empty();
+                let $modalBody = $('#createSupplierModalBody');
+
+                $modalBody.html('<div class="text-center text-muted">Loading...</div>');
+
+                // The partial URL
+                let url = '@Url.Action("CreatePartial", "Supplier", new { area = "Management" })';
+
+                $.get(url)
+                    .done(function (partialHtml) {
+                        $modalBody.html(partialHtml);
+                        initPartialTomSelect($modalBody);
+
+                        let $form = $('#createSupplierForm');
+                        if ($form.length > 0) {
+                            $form.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateSupplierForm($form[0]); // pass the raw DOM element
+                            });
+                        }
+                    })
+                    .fail(function () {
+                        $modalBody.html('<div class="alert alert-danger">Failed to load product form.</div>');
+                    });
+            });
+
+            // The AJAX POST to create the product
+            async function submitCreateSupplierForm(formElement) {
+                let formData = new FormData(formElement);
+                let url = '@Url.Action("CreatePartialPost", "Supplier", new { area = "Management" })';
+
+                try {
+                    let response = await fetch(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                    let contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // success scenario
+                        let json = await response.json();
+                        if (json.success) {
+                            addNewSupplierToDp(json.newId, json.newName);
+                            let modal = document.getElementById('createSupplierModal');
+                            let bsModal = bootstrap.Modal.getInstance(modal);
+                            bsModal.hide();
+                            notyf.success(`Supplier created: ${json.newName}`);
+                        } else {
+                            notyf.error("Failed to create Supplier (JSON response).");
+                        }
+                    } else {
+                        let html = await response.text();
+                        $('#createSupplierModalBody').html(html);
+
+                        let $newForm = $('#createSupplierForm');
+                        if ($newForm.length > 0) {
+                            $newForm.on('submit', function (e) {
+                                e.preventDefault();
+                                submitCreateSupplierForm($newForm[0]);
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error submitting product form:', err);
+                    notyf.error("Error submitting form.");
+                }
+            }
+
+            function addNewSupplierToDp(Id, Name) {
+                // Get the DOM element from the jQuery object
+                let $select = $('#SupplierId');
+                if ($select.length > 0) {
+                    let selectElem = $select[0];
+                    // Check if TomSelect is initialized on this element
+                    if (selectElem.tomselect) {
+                        // Add the new option
+                        selectElem.tomselect.addOption({
+                            value: Id,
+                            text: Name
+                        });
+                        // Optionally, set it as the selected value:
+                        //selectElem.tomselect.setValue(Id);
+                    } else {
+                        console.log("TomSelect instance not found on #SupplierId.");
+                    }
+                }
+            }
+
+
+
+            function initPartialTomSelect($container) {
+                $container.find('.js-partial-select').each(function () {
+                    let selectElement = this;
+
+                    // Check if TomSelect has already been initialized
+                    if ($._data(selectElement, "events")) {
+                        console.log(selectElement.tomselect)
+                        // Destroy existing TomSelect instance first
+                        if (selectElement.tomselect) {
+                            selectElement.tomselect.destroy();
+                        }
+                    }
+                });
+            }
+
+
+        });
+
+
+
+    </script>
+
+
+}

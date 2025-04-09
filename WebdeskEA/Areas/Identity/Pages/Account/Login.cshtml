@@ -1,0 +1,116 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Log in";
+}
+<!-- Toaster -->
+@await Html.PartialAsync("_NotificationPartial")
+<main id="content" role="main" class="main">
+    <div class="position-fixed top-0 end-0 start-0 bg-img-start" style="height: 32rem; background-image: url(/Template/svg/components/card-6.svg);">
+        <div class="shape shape-bottom zi-1">
+            <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1921 273">
+                <polygon fill="#fff" points="0,273 1921,273 1921,0 " />
+            </svg>
+        </div>
+    </div>
+
+    <div class="container py-2 py-sm-7">
+        @* <a class="d-flex justify-content-center mb-5" href="~/">
+            <img class="zi-2" src="~/Template/svg/logos/logo.svg" alt="Logo" style="width: 8rem;">
+            <img class="zi-2" src="~/uploads/ProjectIcon/bg_remove_log.png" alt="Logo" style="width: 8rem;" >
+        </a> *@
+
+        <div class="mx-auto" style="max-width: 30rem;">
+            <div class="card card-lg mb-2">
+                <div class="card-body" style="padding-bottom: 15px;">
+                    <form id="account" method="post" class="js-validate needs-validation" novalidate>
+                        <a class="d-flex justify-content-center" href="~/">
+                            @* <img class="zi-2" src="~/Template/svg/logos/logo.svg" alt="Logo" style="width: 8rem;"> *@
+                            <img class="zi-2" src="~/uploads/projecticon/logo.png" alt="Logo" style="width: 12rem;">
+                        </a>
+                        @* <div class="text-center mb-5">
+                            <h1 class="display-6">Sign in</h1>
+                        </div> *@
+
+                        <div class="mb-4 mt-2">
+                            <label class="form-label" asp-for="Input.Email">Your email</label>
+                            <input asp-for="Input.Email" class="form-control form-control-lg" placeholder="email@address.com" required autocomplete="off"/>
+                            <span asp-validation-for="Input.Email" class="invalid-feedback">Please enter a valid email address.</span>
+                        </div>
+
+
+
+                        <div class="mb-4">
+                            <label class="form-label w-100" for="signupSrPassword" tabindex="0">
+                                <span class="d-flex justify-content-between align-items-center">
+                                    <span>Password</span>
+                                    @* <a class="form-label-link mb-0" href="authentication-reset-password-basic.html">Forgot Password?</a> *@
+                                </span>
+                            </label>
+
+                            <div class="input-group input-group-merge" data-hs-validation-validate-class>
+                                <input type="password" asp-for="Input.Password" class="js-toggle-password form-control form-control-lg" id="signupSrPassword" placeholder="8+ characters required" aria-label="8+ characters required" required minlength="8" data-hs-toggle-password-options='{
+                           "target": "#changePassTarget",
+                           "defaultClass": "bi-eye-slash",
+                           "showClass": "bi-eye",
+                           "classChangeTarget": "#changePassIcon"
+                         }'>
+                                <a id="changePassTarget" class="input-group-append input-group-text" href="javascript:;">
+                                    <i id="changePassIcon" class="bi-eye"></i>
+                                </a>
+                            </div>
+
+                            <span class="invalid-feedback">Please enter a valid password.</span>
+                        </div>
+
+
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" asp-for="Input.RememberMe" id="termsCheckbox">
+                            <label class="form-check-label" asp-for="Input.RememberMe" for="termsCheckbox">Remember me</label>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Sign in</button>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            @* <span class="divider-center text-muted mb-4">OR</span> *@
+                            <p>Don't have an account yet? 
+                                <a class="link" asp-area="Registration" asp-controller="Registration" asp-action="Index">Sign up here</a>
+                            </p>
+
+                            <div class="d-grid mb-4">
+                                <a class="btn btn-white btn-lg" href="#">
+                                    <span class="d-flex justify-content-center align-items-center">
+                                        <img class="avatar avatar-xss me-2" src="~/Template/svg/brands/google-icon.svg" alt="Google">
+                                        Sign in with Google
+                                    </span>
+                                </a>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @* <div class="text-center">
+                <small class="text-body">Trusted by the world's best teams</small>
+                <div class="row justify-content-between mt-3">
+                    <div class="col"><img class="img-fluid" src="~/Template/svg/brands/gitlab-gray.svg" alt="GitLab"></div>
+                    <div class="col"><img class="img-fluid" src="~/Template/svg/brands/fitbit-gray.svg" alt="Fitbit"></div>
+                    <div class="col"><img class="img-fluid" src="~/Template/svg/brands/flow-xo-gray.svg" alt="FlowXO"></div>
+                    <div class="col"><img class="img-fluid" src="~/Template/svg/brands/layar-gray.svg" alt="Layar"></div>
+                </div>
+            </div> *@
+        </div>
+    </div>
+
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    
+}
+
+
